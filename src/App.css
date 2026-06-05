@@ -1,0 +1,94 @@
+/* Paleta de colores ESPE */
+:root {
+  --espe-green: #006b3a;
+  --espe-green-dark: #004d29;
+  --espe-red: #cc0000;
+  --espe-gold: #e5b300;
+  --bg-light: #f4f6f8;
+  --text-dark: #333;
+  --white: #ffffff;
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--bg-light);
+  color: var(--text-dark);
+}
+
+/* --- ESTILOS DEL LOGIN --- */
+.login-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: var(--espe-green); /* Fondo verde institucional */
+}
+
+.login-card {
+  background: var(--white);
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  width: 100%;
+  max-width: 350px;
+  border-top: 5px solid var(--espe-gold); /* Detalle dorado del escudo */
+}
+
+.login-card h2 {
+  text-align: center;
+  color: var(--espe-green);
+  margin-top: 0;
+  margin-bottom: 25px;
+}
+
+.form-group { margin-bottom: 20px; }
+.form-group label { display: block; font-weight: bold; margin-bottom: 8px; font-size: 0.9em;}
+.form-group input { 
+  width: 100%; padding: 10px; box-sizing: border-box; 
+  border: 1px solid #ccc; border-radius: 5px; outline: none;
+}
+.form-group input:focus { border-color: var(--espe-green); }
+
+.btn-primary {
+  width: 100%; padding: 12px; background-color: var(--espe-green);
+  color: white; border: none; border-radius: 5px; font-weight: bold;
+  cursor: pointer; transition: background 0.3s;
+}
+.btn-primary:hover { background-color: var(--espe-green-dark); }
+.error-msg { color: var(--espe-red); font-size: 0.85em; margin-bottom: 15px; text-align: center; }
+
+/* --- ESTILOS DEL DASHBOARD (LAYOUT) --- */
+.dashboard-layout { display: flex; height: 100vh; overflow: hidden; }
+
+.sidebar {
+  width: 250px; background-color: var(--espe-green); color: white;
+  display: flex; flex-direction: column; box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+}
+
+.sidebar-header { padding: 20px; text-align: center; border-bottom: 1px solid var(--espe-green-dark); }
+.sidebar-header h3 { margin: 0; color: var(--espe-gold); }
+
+.sidebar-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; }
+.sidebar-menu li a {
+  display: block; padding: 15px 20px; color: white; text-decoration: none;
+  transition: background 0.3s; border-left: 4px solid transparent;
+}
+.sidebar-menu li a:hover { background-color: var(--espe-green-dark); border-left-color: var(--espe-gold); }
+
+.btn-logout {
+  background: var(--espe-red); color: white; border: none;
+  padding: 15px; cursor: pointer; font-weight: bold; text-align: center;
+}
+.btn-logout:hover { background: #a30000; }
+
+.main-content {
+  flex-grow: 1; padding: 30px; overflow-y: auto; background-color: var(--bg-light);
+}
+
+/* --- ESTILOS DE LAS VISTAS (TARJETAS) --- */
+.view-card {
+  background: var(--white); padding: 30px; border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05); border-top: 4px solid var(--espe-green);
+}
+.view-card h2 { color: var(--espe-green); margin-top: 0; }
