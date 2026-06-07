@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import * as XLSX from 'xlsx';
 
 const bienesDeEjemplo = [
   { codigo: 'SIL-001', descripcion: 'Silla ergonómica office', pcs: 12, ubicacion: 'Sala 1' },
@@ -7,19 +8,20 @@ const bienesDeEjemplo = [
   { codigo: 'TAB-005', descripcion: 'Taburete laboratorio', pcs: 20, ubicacion: 'Laboratorio 1' },
 ];
 
-function descargarCSV(registros) {
-  const encabezados = ['Código', 'Descripción', 'PCS', 'Ubicación'];
-  const filas = registros.map(item => [item.codigo, item.descripcion, item.pcs, item.ubicacion]);
-  const csv = [encabezados.join(','), ...filas.map(f => f.join(','))].join('\n');
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.setAttribute('download', 'bienes_exportados.csv');
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+function descargarExcel(registros) {
+  const datos = registros.map(item => ({
+    'Código': item.codigo,
+    'Descripción': item.descripcion,
+    'PCS': item.pcs,
+    'Ubicación': item.ubicacion
+  }));
+
+  const hoja = XLSX.utils.json_to_sheet(datos);
+  const libro = XLSX.utils.book_new();
+
+  XLSX.utils.book_append_sheet(libro, hoja, 'Bienes');
+
+  XLSX.writeFile(libro, 'bienes_exportados.xlsx');
 }
 
 export default function ConsultarBienes() {
@@ -55,7 +57,7 @@ export default function ConsultarBienes() {
         <button
           className="btn-primary"
           disabled={resultados.length === 0}
-          onClick={() => descargarCSV(resultados)}
+          onClick={() => descargarExcel(resultados)}
         >
           Exportar resultados
         </button>
