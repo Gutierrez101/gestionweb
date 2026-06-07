@@ -11,6 +11,7 @@ import CrearUsuarios from './views/CrearUsuarios';
 import RegistrarBienes from './views/RegistrarBienes';
 import CargarDatos from './views/CargarDatos';
 import ConsultarBienes from './views/ConsultarBienes';
+import AdministrarBienes from './views/AdministrarBienes';
 
 export default function App() {
   return (
@@ -24,6 +25,7 @@ export default function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/crear-usuarios" element={<CrearUsuarios />} />
           <Route path="/registrar-bienes" element={<RegistrarBienes />} />
+          <Route path="/administrar-bienes" element={<AdministrarBienes />} />
           <Route path="/cargar-datos" element={<CargarDatos />} />
           <Route path="/consultar-bienes" element={<ConsultarBienes />} />
         </Route>

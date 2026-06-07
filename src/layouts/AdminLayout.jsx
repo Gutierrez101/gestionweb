@@ -20,6 +20,7 @@ export default function AdminLayout() {
           <li><Link to="/dashboard">Inicio</Link></li>
           <li><Link to="/crear-usuarios">👤 Crear Usuarios</Link></li>
           <li><Link to="/registrar-bienes">📦 Registrar Bienes</Link></li>
+          <li><Link to="/administrar-bienes">🛠️ Administrar Bienes</Link></li>
           <li><Link to="/cargar-datos">📂 Cargar Datos</Link></li>
           <li><Link to="/consultar-bienes">🔍 Consultar Bienes</Link></li>
         </ul>
