@@ -67,8 +67,7 @@ export default function Dashboard() {
         <div className="side-col">
           <div className="profile-card">
             {/* Cambiar el div a una imagen de la ESPE*/}
-            <div style={{width:'80px', height:'80px', background:'#006b3a', borderRadius:'50%', margin:'0 auto 15px', color:'white', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'30px', fontWeight:'bold'}}>E</div>
-            
+            <img src="/images/logoespe.png" alt="Logo ESPE"></img>
             <h3>Universidad</h3>
             <p>Portal Institucional</p>
             <span style={{display: 'block', marginTop: '15px', fontSize: '0.85rem', color: 'var(--text-muted)'}}>
