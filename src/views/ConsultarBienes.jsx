@@ -37,7 +37,7 @@ export default function ConsultarBienes() {
     <div className="view-card">
       <div className="page-header">
         <div>
-          <h2>Consultar Bienes por código</h2>
+          <h2 style={{ color: 'var(--text-dark)' }}>Consultar Bienes por código</h2>
           <p>Busca un bien por su código y exporta los resultados a CSV.</p>
         </div>
       </div>

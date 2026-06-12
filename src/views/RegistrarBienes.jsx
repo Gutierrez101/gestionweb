@@ -1,12 +1,11 @@
 // src/views/RegistrarBienes.jsx
 import { useState } from 'react';
 
-// Generar 10 bienes iniciales para la tabla
 const bienesIniciales = Array.from({ length: 10 }, (_, i) => ({
-  codigo: `B-00${i + 1}`,
-  descripcion: `Equipo Laboratorio ${i + 1}`,
-  categoria: i % 2 === 0 ? 'Electrónica' : 'Mobiliario',
-  pcs: Math.floor(Math.random() * 5) + 1,
+  codigo: `LAB-${String(i + 1).padStart(3, '0')}`,
+  descripcion: `Dispositivo / Mobiliario Tipo ${i + 1}`,
+  categoria: i % 2 === 0 ? 'Electrónica' : 'Infraestructura',
+  pcs: Math.floor(Math.random() * 12) + 1,
 }));
 
 export default function RegistrarBienes() {
@@ -15,15 +14,30 @@ export default function RegistrarBienes() {
   const [form, setForm] = useState({ codigo: '', descripcion: '', categoria: '', pcs: '' });
   const [editando, setEditando] = useState(false);
 
-  // Manejar el submit (Crear o Actualizar)
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    // Mitigación básica XSS a nivel de cliente (limpieza de cadenas)
+    const limpioCodigo = form.codigo.replace(/<[^>]*>/g, '').trim();
+    const limpioDescripcion = form.descripcion.replace(/<[^>]*>/g, '').trim();
+    const limpioCategoria = form.categoria.replace(/<[^>]*>/g, '').trim();
+
+    const objetoFormateado = {
+      codigo: limpioCodigo,
+      descripcion: limpioDescripcion,
+      categoria: limpioCategoria,
+      pcs: parseInt(form.pcs, 10)
+    };
+
     if (editando) {
-      setBienes(bienes.map(b => b.codigo === form.codigo ? form : b));
+      setBienes(bienes.map(b => b.codigo === objetoFormateado.codigo ? objetoFormateado : b));
       setEditando(false);
     } else {
-      if(bienes.find(b => b.codigo === form.codigo)) return alert('El código ya existe');
-      setBienes([form, ...bienes]);
+      if (bienes.find(b => b.codigo.toLowerCase() === objetoFormateado.codigo.toLowerCase())) {
+        alert('Este código identificador ya se encuentra registrado.');
+        return;
+      }
+      setBienes([objetoFormateado, ...bienes]);
     }
     setForm({ codigo: '', descripcion: '', categoria: '', pcs: '' });
   };
@@ -34,55 +48,76 @@ export default function RegistrarBienes() {
   };
 
   const handleDelete = (codigo) => {
-    if(window.confirm('¿Eliminar este bien?')) {
+    if (confirm('¿Confirma la eliminación permanente de este registro?')) {
       setBienes(bienes.filter(b => b.codigo !== codigo));
     }
   };
 
-  // Filtrar bienes por código
   const bienesFiltrados = bienes.filter(b => b.codigo.toLowerCase().includes(filtro.toLowerCase()));
 
   return (
     <div>
       <div className="dashboard-header">
-        <h2>Gestión de Bienes</h2>
+        <h2>Registro de Bienes Tecnológicos y de Infraestructura</h2>
       </div>
 
       <div className="dashboard-grid" style={{ gridTemplateColumns: '1fr' }}>
         
-        {/* Formulario */}
+        {/* Formulario de Registro */}
         <div className="view-card">
-          <h3>{editando ? 'Editar Bien' : 'Registrar Nuevo Bien'}</h3>
+          <h3>{editando ? 'Modificar Información del Bien' : 'Indexar Nuevo Bien'}</h3>
           <form onSubmit={handleSubmit}>
-            <div className="form-grid">
-              <input type="text" placeholder="Código (ej. B-011)" value={form.codigo} disabled={editando} onChange={e => setForm({...form, codigo: e.target.value})} required className="form-control"/>
-              <input type="text" placeholder="Descripción" value={form.descripcion} onChange={e => setForm({...form, descripcion: e.target.value})} required />
-              <input type="text" placeholder="Categoría" value={form.categoria} onChange={e => setForm({...form, categoria: e.target.value})} required />
-              <input type="number" placeholder="Cantidad (PCS)" value={form.pcs} onChange={e => setForm({...form, pcs: e.target.value})} required />
+            <div className="form-grid" style={{ marginBottom: '15px' }}>
+              <div className="form-group" style={{ marginBottom: '0' }}>
+                <label>Código de Inventario</label>
+                <input type="text" placeholder="Ej: LAB-001" value={form.codigo} disabled={editando} onChange={e => setForm({...form, codigo: e.target.value})} required />
+              </div>
+              <div className="form-group" style={{ marginBottom: '0' }}>
+                <label>Descripción General</label>
+                <input type="text" placeholder="Nombre o detalle" value={form.descripcion} onChange={e => setForm({...form, descripcion: e.target.value})} required />
+              </div>
             </div>
-            <div style={{display: 'flex', gap: '10px'}}>
-              <button type="submit" className="btn-primary" style={{width: 'auto'}}>{editando ? 'Actualizar' : 'Guardar Bien'}</button>
-              {editando && <button type="button" className="btn-danger" onClick={() => {setEditando(false); setForm({codigo:'', descripcion:'', categoria:'', pcs:''})}}>Cancelar</button>}
+            
+            <div className="form-grid" style={{ marginBottom: '20px' }}>
+              <div className="form-group" style={{ marginBottom: '0' }}>
+                <label>Categoría</label>
+                <input type="text" placeholder="Mobiliario, Equipos, etc." value={form.categoria} onChange={e => setForm({...form, categoria: e.target.value})} required />
+              </div>
+              <div className="form-group" style={{ marginBottom: '0' }}>
+                <label>Unidades Totales (PCS)</label>
+                <input type="number" placeholder="Cantidad numérica" value={form.pcs} onChange={e => setForm({...form, pcs: e.target.value})} required />
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button type="submit" className="btn-primary" style={{ width: 'auto', padding: '10px 25px' }}>
+                {editando ? 'Actualizar Registro' : 'Confirmar Guardado'}
+              </button>
+              {editando && (
+                <button type="button" className="btn-danger" style={{ padding: '10px 25px' }} onClick={() => { setEditando(false); setForm({ codigo: '', descripcion: '', categoria: '', pcs: '' }); }}>
+                  Cancelar
+                </button>
+              )}
             </div>
           </form>
         </div>
 
-        {/* Tabla con Filtro */}
+        {/* Tabla Informativa */}
         <div className="view-card">
-          <h3>Listado de Bienes</h3>
-          <div className="search-bar">
-            <input type="text" placeholder="Buscar por código..." value={filtro} onChange={(e) => setFiltro(e.target.value)} />
+          <h3>Primeros 10 Bienes en Sistema</h3>
+          <div className="search-bar" style={{ marginBottom: '20px' }}>
+            <input type="text" placeholder="Filtrar listado escribiendo el código..." value={filtro} onChange={(e) => setFiltro(e.target.value)} />
           </div>
           
           <div className="table-responsive">
             <table className="custom-table">
               <thead>
                 <tr>
-                  <th>Código</th>
-                  <th>Descripción</th>
+                  <th>Código Interno</th>
+                  <th>Descripción Técnica</th>
                   <th>Categoría</th>
-                  <th>PCS</th>
-                  <th>Acciones</th>
+                  <th>Cantidad (PCS)</th>
+                  <th>Operaciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -94,12 +129,16 @@ export default function RegistrarBienes() {
                     <td>{bien.pcs}</td>
                     <td>
                       <button className="btn-edit" onClick={() => handleEdit(bien)}>Editar</button>
-                      <button className="btn-danger" onClick={() => handleDelete(bien.codigo)}>Borrar</button>
+                      <button className="btn-danger" style={{ padding: '6px 12px' }} onClick={() => handleDelete(bien.codigo)}>Eliminar</button>
                     </td>
                   </tr>
                 ))}
                 {bienesFiltrados.length === 0 && (
-                  <tr><td colSpan="5" style={{textAlign: 'center', padding: '20px'}}>No se encontraron bienes con ese código.</td></tr>
+                  <tr>
+                    <td colSpan="5" style={{ textAlign: 'center', padding: '30px', color: 'var(--text-muted)' }}>
+                      No coinciden registros con el criterio de código ingresado.
+                    </td>
+                  </tr>
                 )}
               </tbody>
             </table>

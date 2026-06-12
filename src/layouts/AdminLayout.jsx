@@ -17,7 +17,7 @@ export default function AdminLayout() {
     <div className="dashboard-layout">
       <aside className="sidebar">
         <div className="sidebar-header">
-          <h3>🛡️ RBAC</h3>
+          <h3>Gestion Bienes</h3>
           <small>{rol}</small>
         </div>
         
