@@ -1,6 +1,7 @@
-import { Link, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 export default function AdminLayout() {
+  const location = useLocation();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -17,12 +18,12 @@ export default function AdminLayout() {
         </div>
         
         <ul className="sidebar-menu">
-          <li><Link to="/dashboard">Inicio</Link></li>
-          <li><Link to="/crear-usuarios">👤 Crear Usuarios</Link></li>
-          <li><Link to="/registrar-bienes">📦 Registrar Bienes</Link></li>
-          <li><Link to="/administrar-bienes">🛠️ Administrar Bienes</Link></li>
-          <li><Link to="/cargar-datos">📂 Cargar Datos</Link></li>
-          <li><Link to="/consultar-bienes">🔍 Consultar Bienes</Link></li>
+          <li><NavLink to="/dashboard" className={({ isActive }) => isActive ? 'sidebar-button is-active' : 'sidebar-button'}>Inicio</NavLink></li>
+          <li><NavLink to="/crear-usuarios" className={({ isActive }) => isActive ? 'sidebar-button is-active' : 'sidebar-button'}>Crear Usuarios</NavLink></li>
+          <li><NavLink to="/registrar-bienes" className={({ isActive }) => isActive ? 'sidebar-button is-active' : 'sidebar-button'}>Registrar Bienes</NavLink></li>
+          <li><NavLink to="/administrar-bienes" className={({ isActive }) => isActive ? 'sidebar-button is-active' : 'sidebar-button'}>Administrar Bienes</NavLink></li>
+          <li><NavLink to="/cargar-datos" className={({ isActive }) => isActive ? 'sidebar-button is-active' : 'sidebar-button'}>Cargar Datos</NavLink></li>
+          <li><NavLink to="/consultar-bienes" className={({ isActive }) => isActive ? 'sidebar-button is-active' : 'sidebar-button'}>Consultar Bienes</NavLink></li>
         </ul>
 
         <button className="btn-logout" onClick={handleLogout}>
@@ -32,8 +33,9 @@ export default function AdminLayout() {
 
       {/* Área de Contenido Dinámico */}
       <main className="main-content">
-        {/* Aquí se renderizarán las vistas seleccionadas */}
-        <Outlet /> 
+        <div key={location.pathname} className="route-surface">
+          <Outlet />
+        </div>
       </main>
     </div>
   );
