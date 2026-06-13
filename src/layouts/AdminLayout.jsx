@@ -1,43 +1,40 @@
-import { Link, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 export default function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
-  const location = useLocation();
-  const rol = localStorage.getItem('rol') || 'Estudiante'; // Por defecto Usuario
 
   const handleLogout = () => {
-    localStorage.removeItem('rol');
     navigate('/');
   };
 
-  const isActive = (path) => location.pathname === path ? 'active' : '';
-
   return (
     <div className="dashboard-layout">
+      {/* Menú Lateral */}
       <aside className="sidebar">
         <div className="sidebar-header">
-          <h3>Gestion Bienes</h3>
-          <small>{rol}</small>
+          <h3>Gestión Lab</h3>
+          <small>Administrador</small>
         </div>
         
         <ul className="sidebar-menu">
-          <li><Link to="/dashboard">Inicio</Link></li>
-          <li><Link to="/crear-usuarios">👤 Crear Usuarios</Link></li>
-          <li><Link to="/registrar-bienes">📦 Registrar Bienes</Link></li>
-          <li><Link to="/administrar-bienes">🛠️ Administrar Bienes</Link></li>
-          <li><Link to="/cargar-datos">📂 Cargar Datos</Link></li>
-          <li><Link to="/consultar-bienes">🔍 Consultar Bienes</Link></li>
+          <li><NavLink to="/dashboard" className={({ isActive }) => isActive ? 'sidebar-button is-active' : 'sidebar-button'}>Inicio</NavLink></li>
+          <li><NavLink to="/crear-usuarios" className={({ isActive }) => isActive ? 'sidebar-button is-active' : 'sidebar-button'}>Crear Usuarios</NavLink></li>
+          <li><NavLink to="/registrar-bienes" className={({ isActive }) => isActive ? 'sidebar-button is-active' : 'sidebar-button'}>Registrar Bienes</NavLink></li>
+          <li><NavLink to="/cargar-datos" className={({ isActive }) => isActive ? 'sidebar-button is-active' : 'sidebar-button'}>Cargar Datos</NavLink></li>
+          <li><NavLink to="/consultar-bienes" className={({ isActive }) => isActive ? 'sidebar-button is-active' : 'sidebar-button'}>Consultar Bienes</NavLink></li>
         </ul>
 
         <button className="btn-logout" onClick={handleLogout}>
-          🚪 Salir
+          Cerrar Sesión
         </button>
       </aside>
 
+      {/* Área de Contenido Dinámico */}
       <main className="main-content">
-        {/* Aquí se renderizarán las vistas seleccionadas */}
-        <Outlet /> 
+        <div key={location.pathname} className="route-surface">
+          <Outlet />
+        </div>
       </main>
     </div>
   );
