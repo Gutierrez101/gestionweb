@@ -1,7 +1,7 @@
-// src/layouts/AdminLayout.jsx
-import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { Link, Outlet, useNavigate } from 'react-router-dom';
 
 export default function AdminLayout() {
+  const location = useLocation();
   const navigate = useNavigate();
   const location = useLocation();
   const rol = localStorage.getItem('rol') || 'Estudiante'; // Por defecto Usuario
@@ -22,19 +22,12 @@ export default function AdminLayout() {
         </div>
         
         <ul className="sidebar-menu">
-          <li><Link to="/dashboard" className={isActive('/dashboard')}>📊 Dashboard</Link></li>
-          
-          {rol === 'Administrador' && (
-            <>
-              <li><Link to="/crear-usuarios" className={isActive('/crear-usuarios')}>👤 Crear Usuarios</Link></li>
-              <li><Link to="/registrar-bienes" className={isActive('/registrar-bienes')}>📦 Registrar Bienes</Link></li>
-              <li><Link to="/cargar-datos" className={isActive('/cargar-datos')}>📂 Cargar Datos</Link></li>
-            </>
-          )}
-
-          {rol === 'Estudiante' && (
-            <li><Link to="/consultar-bienes" className={isActive('/consultar-bienes')}>🔍 Consultar Bienes</Link></li>
-          )}
+          <li><Link to="/dashboard">Inicio</Link></li>
+          <li><Link to="/crear-usuarios">👤 Crear Usuarios</Link></li>
+          <li><Link to="/registrar-bienes">📦 Registrar Bienes</Link></li>
+          <li><Link to="/administrar-bienes">🛠️ Administrar Bienes</Link></li>
+          <li><Link to="/cargar-datos">📂 Cargar Datos</Link></li>
+          <li><Link to="/consultar-bienes">🔍 Consultar Bienes</Link></li>
         </ul>
 
         <button className="btn-logout" onClick={handleLogout}>
@@ -43,6 +36,7 @@ export default function AdminLayout() {
       </aside>
 
       <main className="main-content">
+        {/* Aquí se renderizarán las vistas seleccionadas */}
         <Outlet /> 
       </main>
     </div>
