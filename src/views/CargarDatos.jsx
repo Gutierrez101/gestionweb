@@ -37,7 +37,7 @@ export default function CargarDatos() {
         <div className="hero-stats">
           <div className="stat-card">
             <span>Métodos</span>
-            <strong>2 Opciones</strong>
+            <strong>2</strong>
           </div>
           <div className="stat-card">
             <span>Formato</span>
