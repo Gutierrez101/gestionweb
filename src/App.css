@@ -620,3 +620,134 @@ body {
     font-size: 0.98rem;
   }
 }
+
+/* --- ESTILOS PARA FORMULARIO Y ACCIONES --- */
+.btn-secondary {
+  background-color: #e8efea;
+  color: var(--espe-green-dark);
+  border: 1px solid #cdd6d2;
+  border-radius: 12px;
+  padding: 12px 20px;
+  cursor: pointer;
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: #d9e5dd;
+  border-color: #b8c2bb;
+  transform: translateY(-1px);
+}
+
+.btn-small {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  margin-right: 6px;
+}
+
+.btn-edit {
+  background-color: #e5f0f9;
+  color: #0066cc;
+}
+
+.btn-edit:hover {
+  background-color: #cce5f7;
+  transform: translateY(-1px);
+}
+
+.btn-delete {
+  background-color: #ffe5e5;
+  color: #cc0000;
+}
+
+.btn-delete:hover {
+  background-color: #ffd9d9;
+  transform: translateY(-1px);
+}
+
+.actions-cell {
+  display: flex;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.form-shell {
+  border: 1px solid #e1ebe5;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 10px 26px rgba(0,0,0,0.04);
+  margin-bottom: 20px;
+}
+
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 18px;
+  border-bottom: 1px solid #e8efea;
+  background: linear-gradient(180deg, #fcfffd 0%, #f8fbf9 100%);
+}
+
+.form-header h3 {
+  margin: 0;
+  color: var(--espe-green-dark);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.bien-form {
+  padding: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.bien-form .form-group {
+  margin-bottom: 0;
+}
+
+.bien-form label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--espe-green-dark);
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.bien-form input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #cdd6d2;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.bien-form input:focus {
+  border-color: var(--espe-green);
+  box-shadow: 0 0 0 3px rgba(0,107,58,0.1);
+  outline: none;
+}
+
+.form-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-start;
+  margin-top: 12px;
+}
+
+.form-actions .btn-primary {
+  min-width: 180px;
+}
+
+.form-actions .btn-secondary {
+  min-width: 140px;
+}
