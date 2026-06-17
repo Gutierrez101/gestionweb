@@ -1,151 +1,280 @@
-// src/views/RegistrarBienes.jsx
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
-const bienesIniciales = Array.from({ length: 10 }, (_, i) => ({
-  codigo: `LAB-${String(i + 1).padStart(3, '0')}`,
-  descripcion: `Dispositivo / Mobiliario Tipo ${i + 1}`,
-  categoria: i % 2 === 0 ? 'Electrónica' : 'Infraestructura',
-  pcs: Math.floor(Math.random() * 12) + 1,
-}));
+const bienesIniciales = [
+  { id: 1, codigo: 'SIL-001', serie: 'SR-2026-001', modelo: 'Ergo Pro', marca: 'OfficeLine', ubicacion: 'Sala 1' },
+  { id: 2, codigo: 'SIL-002', serie: 'SR-2026-002', modelo: 'Fold Basic', marca: 'OfficeLine', ubicacion: 'Sala 2' },
+  { id: 3, codigo: 'MES-010', serie: 'MT-2026-010', modelo: 'Work Mod', marca: 'Mobiliario ESPE', ubicacion: 'Sala 3' },
+  { id: 4, codigo: 'TAB-005', serie: 'TB-2026-005', modelo: 'Lab Stool', marca: 'LabTec', ubicacion: 'Laboratorio 1' },
+];
 
-export default function RegistrarBienes() {
+export default function AdministrarBienes() {
   const [bienes, setBienes] = useState(bienesIniciales);
-  const [filtro, setFiltro] = useState('');
-  const [form, setForm] = useState({ codigo: '', descripcion: '', categoria: '', pcs: '' });
-  const [editando, setEditando] = useState(false);
+  const [busqueda, setBusqueda] = useState('');
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [editandoId, setEditandoId] = useState(null);
+  const [formData, setFormData] = useState({
+    codigo: '',
+    serie: '',
+    modelo: '',
+    marca: '',
+    ubicacion: '',
+  });
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
-    // Mitigación básica XSS a nivel de cliente (limpieza de cadenas)
-    const limpioCodigo = form.codigo.replace(/<[^>]*>/g, '').trim();
-    const limpioDescripcion = form.descripcion.replace(/<[^>]*>/g, '').trim();
-    const limpioCategoria = form.categoria.replace(/<[^>]*>/g, '').trim();
+  const bienesFiltrados = useMemo(() => {
+    const texto = busqueda.trim().toLowerCase();
+    if (!texto) return bienes;
+    return bienes.filter(bien =>
+      bien.codigo.toLowerCase().includes(texto) ||
+      bien.serie.toLowerCase().includes(texto) ||
+      bien.modelo.toLowerCase().includes(texto) ||
+      bien.marca.toLowerCase().includes(texto) ||
+      bien.ubicacion.toLowerCase().includes(texto)
+    );
+  }, [busqueda, bienes]);
 
-    const objetoFormateado = {
-      codigo: limpioCodigo,
-      descripcion: limpioDescripcion,
-      categoria: limpioCategoria,
-      pcs: parseInt(form.pcs, 10)
-    };
+  const totalBienes = bienes.length;
+  const ubicacionesUnicas = new Set(bienes.map((bien) => bien.ubicacion)).size;
 
-    if (editando) {
-      setBienes(bienes.map(b => b.codigo === objetoFormateado.codigo ? objetoFormateado : b));
-      setEditando(false);
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleGuardar = () => {
+    if (!formData.codigo || !formData.serie || !formData.modelo || !formData.marca || !formData.ubicacion) {
+      alert('Por favor completa todos los campos');
+      return;
+    }
+
+    if (editandoId) {
+      // Actualizar bien existente
+      setBienes(bienes.map(bien =>
+        bien.id === editandoId
+          ? { ...bien, ...formData }
+          : bien
+      ));
+      setEditandoId(null);
     } else {
-      if (bienes.find(b => b.codigo.toLowerCase() === objetoFormateado.codigo.toLowerCase())) {
-        alert('Este código identificador ya se encuentra registrado.');
-        return;
-      }
-      setBienes([objetoFormateado, ...bienes]);
+      // Agregar nuevo bien
+      const nuevoId = Math.max(...bienes.map(b => b.id), 0) + 1;
+      setBienes([...bienes, { id: nuevoId, ...formData }]);
     }
-    setForm({ codigo: '', descripcion: '', categoria: '', pcs: '' });
+
+    setFormData({ codigo: '', serie: '', modelo: '', marca: '', ubicacion: '' });
+    setMostrarFormulario(false);
   };
 
-  const handleEdit = (bien) => {
-    setForm(bien);
-    setEditando(true);
+  const handleEditar = (bien) => {
+    setFormData(bien);
+    setEditandoId(bien.id);
+    setMostrarFormulario(true);
   };
 
-  const handleDelete = (codigo) => {
-    if (confirm('¿Confirma la eliminación permanente de este registro?')) {
-      setBienes(bienes.filter(b => b.codigo !== codigo));
+  const handleEliminar = (id) => {
+    if (confirm('¿Estás seguro de que deseas eliminar este bien?')) {
+      setBienes(bienes.filter(bien => bien.id !== id));
     }
   };
 
-  const bienesFiltrados = bienes.filter(b => b.codigo.toLowerCase().includes(filtro.toLowerCase()));
+  const handleCancelar = () => {
+    setFormData({ codigo: '', serie: '', modelo: '', marca: '', ubicacion: '' });
+    setEditandoId(null);
+    setMostrarFormulario(false);
+  };
 
   return (
-    <div>
-      <div className="dashboard-header">
-        <h2>Registro de Bienes Tecnológicos y de Infraestructura</h2>
+    <div className="view-card">
+      <div className="hero-panel">
+        <div className="hero-copy">
+          <span className="eyebrow">Inventario / administración</span>
+          <h2>Administrar Bienes</h2>
+          <p>Vista minimalista para revisar y controlar cada bien con foco en identificación, serie, modelo y ubicación.</p>
+        </div>
+        <div className="hero-stats">
+          <div className="stat-card">
+            <span>Registros</span>
+            <strong>{totalBienes}</strong>
+          </div>
+          <div className="stat-card">
+            <span>Ubicaciones</span>
+            <strong>{ubicacionesUnicas}</strong>
+          </div>
+          <div className="stat-card stat-card-accent">
+            <span>Filtrados</span>
+            <strong>{bienesFiltrados.length}</strong>
+          </div>
+        </div>
       </div>
 
-      <div className="dashboard-grid" style={{ gridTemplateColumns: '1fr' }}>
-        
-        {/* Formulario de Registro */}
-        <div className="view-card">
-          <h3>{editando ? 'Modificar Información del Bien' : 'Indexar Nuevo Bien'}</h3>
-          <form onSubmit={handleSubmit}>
-            <div className="form-grid" style={{ marginBottom: '15px' }}>
-              <div className="form-group" style={{ marginBottom: '0' }}>
-                <label>Código de Inventario</label>
-                <input type="text" placeholder="Ej: LAB-001" value={form.codigo} disabled={editando} onChange={e => setForm({...form, codigo: e.target.value})} required />
-              </div>
-              <div className="form-group" style={{ marginBottom: '0' }}>
-                <label>Descripción General</label>
-                <input type="text" placeholder="Nombre o detalle" value={form.descripcion} onChange={e => setForm({...form, descripcion: e.target.value})} required />
-              </div>
-            </div>
-            
-            <div className="form-grid" style={{ marginBottom: '20px' }}>
-              <div className="form-group" style={{ marginBottom: '0' }}>
-                <label>Categoría</label>
-                <input type="text" placeholder="Mobiliario, Equipos, etc." value={form.categoria} onChange={e => setForm({...form, categoria: e.target.value})} required />
-              </div>
-              <div className="form-group" style={{ marginBottom: '0' }}>
-                <label>Unidades Totales (PCS)</label>
-                <input type="number" placeholder="Cantidad numérica" value={form.pcs} onChange={e => setForm({...form, pcs: e.target.value})} required />
-              </div>
+      <div className="control-panel">
+        <div className="search-bar search-bar-compact">
+          <label htmlFor="busqueda-bienes">Buscar por código, serie, modelo, marca o ubicación</label>
+          <input
+            id="busqueda-bienes"
+            type="text"
+            value={busqueda}
+            placeholder="Ej: SIL-001, SR-2026, Ergo Pro"
+            onChange={(e) => setBusqueda(e.target.value)}
+          />
+        </div>
+
+        <button 
+          className="btn-primary"
+          onClick={() => setMostrarFormulario(!mostrarFormulario)}
+        >
+          {mostrarFormulario ? 'Cancelar' : '+ Registrar nuevo bien'}
+        </button>
+
+        <div className="pill-row">
+          <span className="pill">Códigos activos</span>
+          <span className="pill">Serie visible</span>
+          <span className="pill">Diseño limpio</span>
+        </div>
+      </div>
+
+      {mostrarFormulario && (
+        <div className="form-shell">
+          <div className="form-header">
+            <h3>{editandoId ? 'Editar bien' : 'Registrar nuevo bien'}</h3>
+          </div>
+          <form className="bien-form">
+            <div className="form-group">
+              <label htmlFor="codigo">Código del bien *</label>
+              <input
+                id="codigo"
+                type="text"
+                name="codigo"
+                value={formData.codigo}
+                onChange={handleInputChange}
+                placeholder="Ej: SIL-001"
+              />
             </div>
 
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button type="submit" className="btn-primary" style={{ width: 'auto', padding: '10px 25px' }}>
-                {editando ? 'Actualizar Registro' : 'Confirmar Guardado'}
+            <div className="form-group">
+              <label htmlFor="serie">Serie *</label>
+              <input
+                id="serie"
+                type="text"
+                name="serie"
+                value={formData.serie}
+                onChange={handleInputChange}
+                placeholder="Ej: SR-2026-001"
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="modelo">Modelo *</label>
+              <input
+                id="modelo"
+                type="text"
+                name="modelo"
+                value={formData.modelo}
+                onChange={handleInputChange}
+                placeholder="Ej: Ergo Pro"
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="marca">Marca/Raza/Otros *</label>
+              <input
+                id="marca"
+                type="text"
+                name="marca"
+                value={formData.marca}
+                onChange={handleInputChange}
+                placeholder="Ej: OfficeLine"
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="ubicacion">Ubicación *</label>
+              <input
+                id="ubicacion"
+                type="text"
+                name="ubicacion"
+                value={formData.ubicacion}
+                onChange={handleInputChange}
+                placeholder="Ej: Sala 1"
+              />
+            </div>
+
+            <div className="form-actions">
+              <button 
+                type="button"
+                className="btn-primary"
+                onClick={handleGuardar}
+              >
+                {editandoId ? 'Guardar cambios' : 'Registrar bien'}
               </button>
-              {editando && (
-                <button type="button" className="btn-danger" style={{ padding: '10px 25px' }} onClick={() => { setEditando(false); setForm({ codigo: '', descripcion: '', categoria: '', pcs: '' }); }}>
-                  Cancelar
-                </button>
-              )}
+              <button 
+                type="button"
+                className="btn-secondary"
+                onClick={handleCancelar}
+              >
+                Cancelar
+              </button>
             </div>
           </form>
         </div>
+      )}
 
-        {/* Tabla Informativa */}
-        <div className="view-card">
-          <h3>Primeros 10 Bienes en Sistema</h3>
-          <div className="search-bar" style={{ marginBottom: '20px' }}>
-            <input type="text" placeholder="Filtrar listado escribiendo el código..." value={filtro} onChange={(e) => setFiltro(e.target.value)} />
+      <div className="table-shell">
+        <div className="table-header">
+          <div>
+            <h3>Listado de bienes</h3>
+            <p>Formato institucional para seguimiento rápido del activo.</p>
           </div>
-          
-          <div className="table-responsive">
-            <table className="custom-table">
-              <thead>
-                <tr>
-                  <th>Código Interno</th>
-                  <th>Descripción Técnica</th>
-                  <th>Categoría</th>
-                  <th>Cantidad (PCS)</th>
-                  <th>Operaciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {bienesFiltrados.slice(0, 10).map((bien) => (
-                  <tr key={bien.codigo}>
-                    <td><strong>{bien.codigo}</strong></td>
-                    <td>{bien.descripcion}</td>
-                    <td>{bien.categoria}</td>
-                    <td>{bien.pcs}</td>
-                    <td>
-                      <button className="btn-edit" onClick={() => handleEdit(bien)}>Editar</button>
-                      <button className="btn-danger" style={{ padding: '6px 12px' }} onClick={() => handleDelete(bien.codigo)}>Eliminar</button>
-                    </td>
-                  </tr>
-                ))}
-                {bienesFiltrados.length === 0 && (
-                  <tr>
-                    <td colSpan="5" style={{ textAlign: 'center', padding: '30px', color: 'var(--text-muted)' }}>
-                      No coinciden registros con el criterio de código ingresado.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+          <span className="table-badge">{bienesFiltrados.length} resultados</span>
         </div>
-
+        <div className="table-responsive">
+          <table className="bienes-table">
+            <thead>
+              <tr>
+                <th>Código del bien</th>
+                <th>Serie</th>
+                <th>Modelo</th>
+                <th>Marca/Raza/Otros</th>
+                <th>Ubicación</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {bienesFiltrados.map((bien) => (
+                <tr key={bien.id}>
+                  <td>{bien.codigo}</td>
+                  <td>{bien.serie}</td>
+                  <td>{bien.modelo}</td>
+                  <td>{bien.marca}</td>
+                  <td>{bien.ubicacion}</td>
+                  <td className="actions-cell">
+                    <button
+                      className="btn-small btn-edit"
+                      onClick={() => handleEditar(bien)}
+                      title="Editar bien"
+                    >
+                      Editar
+                    </button>
+                    <button
+                      className="btn-small btn-delete"
+                      onClick={() => handleEliminar(bien.id)}
+                      title="Eliminar bien"
+                    >
+                      Eliminar
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
+
+      {bienesFiltrados.length === 0 && (
+        <p className="empty-state">No se encontró ningún bien con ese criterio.</p>
+      )}
     </div>
   );
 }
