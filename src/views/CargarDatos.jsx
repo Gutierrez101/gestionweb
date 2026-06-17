@@ -27,18 +27,32 @@ export default function CargarDatos() {
   };
 
   return (
-    <div>
-      <div className="dashboard-header">
-        <h2>Ingreso y Transferencia de Datos</h2>
+    <div className="view-card">
+      <div className="hero-panel">
+        <div className="hero-copy">
+          <span className="eyebrow">Importación de datos</span>
+          <h2>Ingreso y Transferencia de Datos</h2>
+          <p>Cargue bienes de forma individual o masiva mediante archivos Excel para mantener tu inventario actualizado.</p>
+        </div>
+        <div className="hero-stats">
+          <div className="stat-card">
+            <span>Métodos</span>
+            <strong>2 Opciones</strong>
+          </div>
+          <div className="stat-card">
+            <span>Formato</span>
+            <strong>Excel</strong>
+          </div>
+        </div>
       </div>
 
-      <div className="dashboard-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
+      <div className="form-sections" style={{ gridTemplateColumns: '1fr 1fr', display: 'grid', gap: '25px' }}>
         {/* Sección Carga Individual */}
-        <div className="view-card">
-          <h3>Carga Individual</h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>
-            Ingrese los datos de inventariado básicos para añadir una unidad única al registro de laboratorios.
-          </p>
+        <div className="form-card">
+          <div className="form-header">
+            <h3>Carga Individual</h3>
+            <p>Ingrese los datos de inventariado básicos para añadir una unidad única al registro de laboratorios.</p>
+          </div>
           
           <form onSubmit={handleManualSubmit}>
             <div className="form-group">
@@ -69,11 +83,11 @@ export default function CargarDatos() {
         </div>
 
         {/* Sección Carga Masiva */}
-        <div className="view-card" style={{ display: 'flex', flexDirection: 'column' }}>
-          <h3>Carga Masiva de Registros</h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>
-            Cargue hojas de cálculo en formatos compatibles (.xlsx o .xls) para indexar bienes masivamente.
-          </p>
+        <div className="form-card" style={{ display: 'flex', flexDirection: 'column' }}>
+          <div className="form-header">
+            <h3>Carga Masiva de Registros</h3>
+            <p>Cargue hojas de cálculo en formatos compatibles (.xlsx o .xls) para indexar bienes masivamente.</p>
+          </div>
 
           <div 
             style={{

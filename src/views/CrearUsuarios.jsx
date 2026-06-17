@@ -11,17 +11,22 @@ export default function CrearUsuarios() {
   };
 
   return (
-    <div>
-      <div className="dashboard-header">
-        <h2>Administración de Usuarios</h2>
+    <div className="view-card">
+      <div className="hero-panel">
+        <div className="hero-copy">
+          <span className="eyebrow">Gestión</span>
+          <h2>Administración de Usuarios</h2>
+          <p>Complete los campos para registrar un nuevo perfil de acceso al sistema de gestión de laboratorios.</p>
+        </div>
+        <div className="hero-stats">
+          <div className="stat-card">
+            <span>Tipo de Cuenta</span>
+            <strong>Nuevo Usuario</strong>
+          </div>
+        </div>
       </div>
 
-      <div className="view-card" style={{ maxWidth: '600px', margin: '0 auto' }}>
-        <h3>Crear Nueva Cuenta</h3>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '25px' }}>
-          Complete los campos para registrar un nuevo perfil de acceso al sistema de gestión de laboratorios.
-        </p>
-
+      <div style={{ maxWidth: '600px', margin: '0 auto' }}>
         <form onSubmit={handleCrear}>
           <div className="form-group">
             <label>Nombre Completo</label>
