@@ -71,7 +71,7 @@ export default function App() {
           } />
           
           <Route path="/consultar-bienes" element={
-            <ProtectedRoute allowedRoles={['Estudiante']}>
+            <ProtectedRoute allowedRoles={['Docente']}>
               <ConsultarBienes />
             </ProtectedRoute>
           } />

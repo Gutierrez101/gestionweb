@@ -19,13 +19,13 @@ body {
   color: var(--text-dark);
 }
 
-/* --- ESTILOS DEL LOGIN --- */
+/* estilo del login */
 .login-page {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background-color: var(--espe-green); /* Fondo verde institucional */
+  background-color: var(--espe-green);
 }
 
 .login-card {
@@ -35,7 +35,7 @@ body {
   box-shadow: 0 8px 20px rgba(0,0,0,0.2);
   width: 100%;
   max-width: 350px;
-  border-top: 5px solid var(--espe-gold); /* Detalle dorado del escudo */
+  border-top: 5px solid var(--espe-gold); 
 }
 
 .login-card h2 {
@@ -50,6 +50,7 @@ body {
 .form-group input { 
   width: 100%; padding: 10px; box-sizing: border-box; 
   border: 1px solid #ccc; border-radius: 5px; outline: none;
+  color: var(--text-dark);
 }
 .form-group input:focus { border-color: var(--espe-green); }
 
@@ -61,7 +62,7 @@ body {
 .btn-primary:hover { background-color: var(--espe-green-dark); }
 .error-msg { color: var(--espe-red); font-size: 0.85em; margin-bottom: 15px; text-align: center; }
 
-/* --- ESTILOS DEL DASHBOARD (LAYOUT) --- */
+/* estilo del dashboard */
 .dashboard-layout { display: flex; height: 100vh; overflow: hidden; }
 
 .sidebar {
@@ -188,7 +189,7 @@ body {
   transform-origin: top center;
 }
 
-/* --- ESTILOS DE LAS VISTAS (TARJETAS) --- */
+/* estilos de las vistas */
 .view-card {
   background: rgba(255, 255, 255, 0.96);
   padding: 26px;
@@ -417,6 +418,7 @@ body {
   width: 100%; padding: 13px 14px; border: 1px solid #cdd6d2;
   border-radius: 12px; outline: none; font-size: 1rem;
   background: #fff;
+  color: var(--text-dark);
   transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 .search-bar input:focus { border-color: var(--espe-green); box-shadow: 0 0 0 3px rgba(0,107,58,0.1); transform: translateY(-1px); }
@@ -552,6 +554,55 @@ body {
   transform: translateY(0);
 }
 
+/* =========================================
+   CORRECCIÓN: BOTONES DE ACCIÓN EN TABLAS
+   ========================================= */
+.actions-cell {
+  display: flex;
+  gap: 8px; /* Espacio entre los botones */
+  align-items: center;
+}
+
+.btn-small {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+/* Estilo para el botón de Editar (Verde Institucional) */
+.btn-edit {
+  background-color: #f0f7f3;
+  color: var(--espe-green);
+  border-color: #d1e6d9;
+}
+
+.btn-edit:hover {
+  background-color: var(--espe-green);
+  color: white;
+  border-color: var(--espe-green);
+  box-shadow: 0 4px 10px rgba(0, 107, 58, 0.2);
+  transform: translateY(-1px);
+}
+
+/* Estilo para el botón de Borrar (Rojo Institucional) */
+.btn-delete {
+  background-color: #fdf0f0;
+  color: var(--espe-red);
+  border-color: #fad2d2;
+}
+
+.btn-delete:hover {
+  background-color: var(--espe-red);
+  color: white;
+  border-color: var(--espe-red);
+  box-shadow: 0 4px 10px rgba(204, 0, 0, 0.2);
+  transform: translateY(-1px);
+}
+
 @keyframes viewEnter {
   from {
     opacity: 0;
@@ -619,4 +670,103 @@ body {
   .search-bar input {
     font-size: 0.98rem;
   }
+
+
+/* estilo de aceptar eliminacion */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 9999;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal-card {
+  background: var(--white);
+  padding: 32px;
+  border-radius: 16px;
+  width: 90%; max-width: 420px;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  border-top: 6px solid var(--espe-red);
+  animation: slideUp 0.3s ease-out;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.modal-icon {
+  width: 64px;
+  height: 64px;
+  background: #fdf0f0;
+  color: var(--espe-red);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.modal-card h3 {
+  color: var(--text-dark);
+  margin: 0 0 12px 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.modal-card p {
+  color: #5f6f68;
+  margin: 0 0 28px 0;
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+.modal-actions {
+  display: flex; gap: 16px; justify-content: center; width: 100%;
+}
+
+
+.btn-cancel {
+  background-color: #f4f6f8; 
+  color: #333; 
+  border: 1px solid #cdd6d2;
+  padding: 12px 24px; 
+  border-radius: 10px; 
+  cursor: pointer; 
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  flex: 1;
+}
+
+.btn-cancel:hover { 
+  background-color: #e8ecef; 
+  transform: translateY(-2px); 
+}
+
+.btn-confirm-delete {
+  background-color: var(--espe-red); 
+  color: white; 
+  border: none;
+  padding: 12px 24px; 
+  border-radius: 10px; 
+  cursor: pointer; 
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.2s ease; 
+  box-shadow: 0 8px 16px rgba(204, 0, 0, 0.2);
+  flex: 1;
+}
+
+.btn-confirm-delete:hover {
+  background-color: #a30000; 
+  transform: translateY(-2px); 
+  box-shadow: 0 12px 20px rgba(204, 0, 0, 0.3);
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
 }

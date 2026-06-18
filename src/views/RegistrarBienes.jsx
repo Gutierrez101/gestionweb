@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
 
 const bienesIniciales = [
-  { id: 1, codigo: 'SIL-001', serie: 'SR-2026-001', modelo: 'Ergo Pro', marca: 'OfficeLine', ubicacion: 'Sala 1' },
-  { id: 2, codigo: 'SIL-002', serie: 'SR-2026-002', modelo: 'Fold Basic', marca: 'OfficeLine', ubicacion: 'Sala 2' },
-  { id: 3, codigo: 'MES-010', serie: 'MT-2026-010', modelo: 'Work Mod', marca: 'Mobiliario ESPE', ubicacion: 'Sala 3' },
-  { id: 4, codigo: 'TAB-005', serie: 'TB-2026-005', modelo: 'Lab Stool', marca: 'LabTec', ubicacion: 'Laboratorio 1' },
+  { id: 1, codigo: 'SIL-001', serie: 'SR-2026-001', modelo: 'Ergo Pro', marca: 'OfficeLine', ubicacion: 'Sala 1', custodio: 'Carlos Viteri' },
+  { id: 2, codigo: 'SIL-002', serie: 'SR-2026-002', modelo: 'Fold Basic', marca: 'OfficeLine', ubicacion: 'Sala 2', custodio: 'Ana Torres' },
+  { id: 3, codigo: 'MES-010', serie: 'MT-2026-010', modelo: 'Work Mod', marca: 'Mobiliario ESPE', ubicacion: 'Sala 3', custodio: 'Luis Gómez' },
+  { id: 4, codigo: 'TAB-005', serie: 'TB-2026-005', modelo: 'Lab Stool', marca: 'LabTec', ubicacion: 'Laboratorio 1', custodio: 'Marta Ríos' },
 ];
 
 export default function AdministrarBienes() {
@@ -12,12 +12,12 @@ export default function AdministrarBienes() {
   const [busqueda, setBusqueda] = useState('');
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [editandoId, setEditandoId] = useState(null);
+  
+  // ESTADO NUEVO: Controla qué bien se va a eliminar para mostrar el modal
+  const [bienAEliminar, setBienAEliminar] = useState(null);
+  
   const [formData, setFormData] = useState({
-    codigo: '',
-    serie: '',
-    modelo: '',
-    marca: '',
-    ubicacion: '',
+    codigo: '', serie: '', modelo: '', marca: '', ubicacion: '', custodio: ''
   });
 
   const bienesFiltrados = useMemo(() => {
@@ -28,216 +28,98 @@ export default function AdministrarBienes() {
       bien.serie.toLowerCase().includes(texto) ||
       bien.modelo.toLowerCase().includes(texto) ||
       bien.marca.toLowerCase().includes(texto) ||
-      bien.ubicacion.toLowerCase().includes(texto)
+      bien.ubicacion.toLowerCase().includes(texto) ||
+      bien.custodio.toLowerCase().includes(texto)
     );
   }, [busqueda, bienes]);
 
-  const totalBienes = bienes.length;
-  const ubicacionesUnicas = new Set(bienes.map((bien) => bien.ubicacion)).size;
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleGuardar = () => {
-    if (!formData.codigo || !formData.serie || !formData.modelo || !formData.marca || !formData.ubicacion) {
-      alert('Por favor completa todos los campos');
+    if (!formData.codigo || !formData.serie || !formData.modelo || !formData.marca || !formData.ubicacion || !formData.custodio) {
+      alert('Por favor completa todos los campos, incluyendo el custodio.');
       return;
     }
 
     if (editandoId) {
-      // Actualizar bien existente
-      setBienes(bienes.map(bien =>
-        bien.id === editandoId
-          ? { ...bien, ...formData }
-          : bien
-      ));
+      setBienes(bienes.map(bien => bien.id === editandoId ? { ...bien, ...formData } : bien ));
       setEditandoId(null);
     } else {
-      // Agregar nuevo bien
       const nuevoId = Math.max(...bienes.map(b => b.id), 0) + 1;
       setBienes([...bienes, { id: nuevoId, ...formData }]);
     }
-
-    setFormData({ codigo: '', serie: '', modelo: '', marca: '', ubicacion: '' });
+    setFormData({ codigo: '', serie: '', modelo: '', marca: '', ubicacion: '', custodio: '' });
     setMostrarFormulario(false);
   };
 
   const handleEditar = (bien) => {
-    setFormData(bien);
-    setEditandoId(bien.id);
-    setMostrarFormulario(true);
+    setFormData(bien); setEditandoId(bien.id); setMostrarFormulario(true);
   };
 
-  const handleEliminar = (id) => {
-    if (confirm('¿Estás seguro de que deseas eliminar este bien?')) {
-      setBienes(bienes.filter(bien => bien.id !== id));
-    }
+  // Función que ABRE el modal en lugar de usar confirm()
+  const prepararEliminacion = (bien) => {
+    setBienAEliminar(bien);
   };
 
-  const handleCancelar = () => {
-    setFormData({ codigo: '', serie: '', modelo: '', marca: '', ubicacion: '' });
-    setEditandoId(null);
-    setMostrarFormulario(false);
+  // Función que EJECUTA el borrado real y cierra el modal
+  const confirmarEliminacion = () => {
+    setBienes(bienes.filter(bien => bien.id !== bienAEliminar.id));
+    setBienAEliminar(null); // Cierra el modal
   };
 
   return (
     <div className="view-card">
       <div className="hero-panel">
         <div className="hero-copy">
-          <span className="eyebrow">Inventario / administración</span>
+          <span className="eyebrow">Inventario</span>
           <h2>Administrar Bienes</h2>
-          <p>Vista minimalista para revisar y controlar cada bien con foco en identificación, serie, modelo y ubicación.</p>
-        </div>
-        <div className="hero-stats">
-          <div className="stat-card">
-            <span>Registros</span>
-            <strong>{totalBienes}</strong>
-          </div>
-          <div className="stat-card">
-            <span>Ubicaciones</span>
-            <strong>{ubicacionesUnicas}</strong>
-          </div>
-          <div className="stat-card stat-card-accent">
-            <span>Filtrados</span>
-            <strong>{bienesFiltrados.length}</strong>
-          </div>
+          <p>Vista integral para revisar activos y responsables (Custodios).</p>
         </div>
       </div>
 
       <div className="control-panel">
         <div className="search-bar search-bar-compact">
-          <label htmlFor="busqueda-bienes">Buscar por código, serie, modelo, marca o ubicación</label>
-          <input
-            id="busqueda-bienes"
-            type="text"
-            value={busqueda}
-            placeholder="Ej: SIL-001, SR-2026, Ergo Pro"
-            onChange={(e) => setBusqueda(e.target.value)}
-          />
+          <label>Buscar por código, ubicación o custodio</label>
+          <input type="text" value={busqueda} placeholder="Ej: SIL-001, Carlos Viteri" onChange={(e) => setBusqueda(e.target.value)} />
         </div>
-
-        <button 
-          className="btn-primary"
-          onClick={() => setMostrarFormulario(!mostrarFormulario)}
-        >
+        <button className="btn-primary" onClick={() => setMostrarFormulario(!mostrarFormulario)}>
           {mostrarFormulario ? 'Cancelar' : '+ Registrar nuevo bien'}
         </button>
-
-        <div className="pill-row">
-          <span className="pill">Códigos activos</span>
-          <span className="pill">Serie visible</span>
-          <span className="pill">Diseño limpio</span>
-        </div>
       </div>
 
       {mostrarFormulario && (
-        <div className="form-shell">
-          <div className="form-header">
-            <h3>{editandoId ? 'Editar bien' : 'Registrar nuevo bien'}</h3>
-          </div>
-          <form className="bien-form">
-            <div className="form-group">
-              <label htmlFor="codigo">Código del bien *</label>
-              <input
-                id="codigo"
-                type="text"
-                name="codigo"
-                value={formData.codigo}
-                onChange={handleInputChange}
-                placeholder="Ej: SIL-001"
-              />
+        <div className="form-shell" style={{ marginBottom: '30px', padding: '20px', background: '#f8fbf9', borderRadius: '15px' }}>
+          <h3>{editandoId ? 'Editar bien' : 'Registrar nuevo bien'}</h3>
+          <form>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+              <div className="form-group"><label>Código *</label><input type="text" name="codigo" value={formData.codigo} onChange={handleInputChange} /></div>
+              <div className="form-group"><label>Serie *</label><input type="text" name="serie" value={formData.serie} onChange={handleInputChange} /></div>
+              <div className="form-group"><label>Modelo *</label><input type="text" name="modelo" value={formData.modelo} onChange={handleInputChange} /></div>
+              <div className="form-group"><label>Marca *</label><input type="text" name="marca" value={formData.marca} onChange={handleInputChange} /></div>
+              <div className="form-group"><label>Ubicación *</label><input type="text" name="ubicacion" value={formData.ubicacion} onChange={handleInputChange} /></div>
+              <div className="form-group"><label>Custodio Asignado *</label><input type="text" name="custodio" value={formData.custodio} onChange={handleInputChange} placeholder="Nombre de la persona responsable"/></div>
             </div>
-
-            <div className="form-group">
-              <label htmlFor="serie">Serie *</label>
-              <input
-                id="serie"
-                type="text"
-                name="serie"
-                value={formData.serie}
-                onChange={handleInputChange}
-                placeholder="Ej: SR-2026-001"
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="modelo">Modelo *</label>
-              <input
-                id="modelo"
-                type="text"
-                name="modelo"
-                value={formData.modelo}
-                onChange={handleInputChange}
-                placeholder="Ej: Ergo Pro"
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="marca">Marca/Raza/Otros *</label>
-              <input
-                id="marca"
-                type="text"
-                name="marca"
-                value={formData.marca}
-                onChange={handleInputChange}
-                placeholder="Ej: OfficeLine"
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="ubicacion">Ubicación *</label>
-              <input
-                id="ubicacion"
-                type="text"
-                name="ubicacion"
-                value={formData.ubicacion}
-                onChange={handleInputChange}
-                placeholder="Ej: Sala 1"
-              />
-            </div>
-
-            <div className="form-actions">
-              <button 
-                type="button"
-                className="btn-primary"
-                onClick={handleGuardar}
-              >
-                {editandoId ? 'Guardar cambios' : 'Registrar bien'}
-              </button>
-              <button 
-                type="button"
-                className="btn-secondary"
-                onClick={handleCancelar}
-              >
-                Cancelar
-              </button>
-            </div>
+            <button type="button" className="btn-primary" onClick={handleGuardar}>Guardar</button>
           </form>
         </div>
       )}
 
       <div className="table-shell">
         <div className="table-header">
-          <div>
-            <h3>Listado de bienes</h3>
-            <p>Formato institucional para seguimiento rápido del activo.</p>
-          </div>
-          <span className="table-badge">{bienesFiltrados.length} resultados</span>
+          <div><h3>Listado de bienes</h3><p>Activos y sus custodios actuales.</p></div>
         </div>
         <div className="table-responsive">
           <table className="bienes-table">
             <thead>
               <tr>
-                <th>Código del bien</th>
+                <th>Código</th>
                 <th>Serie</th>
                 <th>Modelo</th>
-                <th>Marca/Raza/Otros</th>
                 <th>Ubicación</th>
+                <th>Custodio</th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -247,22 +129,15 @@ export default function AdministrarBienes() {
                   <td>{bien.codigo}</td>
                   <td>{bien.serie}</td>
                   <td>{bien.modelo}</td>
-                  <td>{bien.marca}</td>
                   <td>{bien.ubicacion}</td>
+                  <td><strong>{bien.custodio}</strong></td>
                   <td className="actions-cell">
-                    <button
-                      className="btn-small btn-edit"
-                      onClick={() => handleEditar(bien)}
-                      title="Editar bien"
-                    >
+                    <button className="btn-small btn-edit" onClick={() => handleEditar(bien)} title="Editar bien">
                       Editar
                     </button>
-                    <button
-                      className="btn-small btn-delete"
-                      onClick={() => handleEliminar(bien.id)}
-                      title="Eliminar bien"
-                    >
-                      Eliminar
+                    {/* Al dar clic aquí, abrimos el modal pasándole la info del bien */}
+                    <button className="btn-small btn-delete" onClick={() => prepararEliminacion(bien)} title="Eliminar bien">
+                      Borrar
                     </button>
                   </td>
                 </tr>
@@ -272,9 +147,33 @@ export default function AdministrarBienes() {
         </div>
       </div>
 
-      {bienesFiltrados.length === 0 && (
-        <p className="empty-state">No se encontró ningún bien con ese criterio.</p>
+      {bienAEliminar && (
+        <div className="modal-overlay">
+          <div className="modal-card">
+            
+            {/* Ícono de Advertencia SVG */}
+            <div className="modal-icon">
+              <svg width="36" height="36" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+
+            <h3>¿Eliminar registro?</h3>
+            <p>Estás a punto de borrar el bien <strong>{bienAEliminar.codigo}</strong> asignado a <strong>{bienAEliminar.custodio}</strong>.<br/>Esta acción no se puede deshacer.</p>
+            
+            <div className="modal-actions">
+              <button className="btn-cancel" onClick={() => setBienAEliminar(null)}>
+                Cancelar
+              </button>
+              <button className="btn-confirm-delete" onClick={confirmarEliminacion}>
+                Sí, eliminar
+              </button>
+            </div>
+            
+          </div>
+        </div>
       )}
+
     </div>
   );
 }

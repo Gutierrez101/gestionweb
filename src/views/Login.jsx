@@ -14,7 +14,7 @@ export default function Login() {
       localStorage.setItem('rol', 'Administrador');
       navigate('/dashboard'); 
     } else if (usuario === 'usuario' && password === 'usuario123') {
-      localStorage.setItem('rol', 'Estudiante');
+      localStorage.setItem('rol', 'Docente');
       navigate('/dashboard');
     } else {
       setError('Credenciales incorrectas. Intente: admin/admin123 o usuario/usuario123');

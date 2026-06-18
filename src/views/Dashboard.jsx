@@ -5,7 +5,7 @@ export default function Dashboard() {
   const [rol, setRol] = useState('');
 
   useEffect(() => {
-    setRol(localStorage.getItem('rol') || 'Estudiante');
+    setRol(localStorage.getItem('rol') || 'Docente');
   }, []);
 
   return (
