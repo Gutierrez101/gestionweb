@@ -1,25 +1,37 @@
 import { useMemo, useState } from 'react';
+import * as XLSX from 'xlsx';
 
 const bienesDeEjemplo = [
-  { codigo: 'SIL-001', serie: 'SR-2026-001', modelo: 'Ergo Pro', marca: 'OfficeLine', ubicacion: 'Sala 1' },
-  { codigo: 'SIL-002', serie: 'SR-2026-002', modelo: 'Fold Basic', marca: 'OfficeLine', ubicacion: 'Sala 2' },
-  { codigo: 'MES-010', serie: 'MT-2026-010', modelo: 'Work Mod', marca: 'Mobiliario ESPE', ubicacion: 'Sala 3' },
-  { codigo: 'TAB-005', serie: 'TB-2026-005', modelo: 'Lab Stool', marca: 'LabTec', ubicacion: 'Laboratorio 1' },
+  { id: 1, codigo: 'SIL-001', serie: 'SR-2026-001', modelo: 'Ergo Pro', marca: 'OfficeLine', ubicacion: 'Sala 1', custodio: 'Carlos Viteri' },
+  { id: 2, codigo: 'SIL-002', serie: 'SR-2026-002', modelo: 'Fold Basic', marca: 'OfficeLine', ubicacion: 'Sala 2', custodio: 'Ana Torres' },
+  { id: 3, codigo: 'MES-010', serie: 'MT-2026-010', modelo: 'Work Mod', marca: 'Mobiliario ESPE', ubicacion: 'Sala 3', custodio: 'Luis Gomez' },
+  { id: 4, codigo: 'TAB-005', serie: 'TB-2026-005', modelo: 'Lab Stool', marca: 'LabTec', ubicacion: 'Laboratorio 1', custodio: 'Marta Rios' },
 ];
 
-function descargarCSV(registros) {
-  const encabezados = ['Código del bien', 'Serie', 'Modelo', 'Marca/Raza/Otros', 'Ubicación'];
-  const filas = registros.map(item => [item.codigo, item.serie, item.modelo, item.marca, item.ubicacion]);
-  const csv = [encabezados.join(','), ...filas.map(f => f.join(','))].join('\n');
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.setAttribute('download', 'bienes_exportados.csv');
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+function descargarExcel(registros) {
+  const datosFormateados = registros.map(item => ({
+    'Código del bien': item.codigo,
+    'Serie': item.serie,
+    'Modelo': item.modelo,
+    'Marca/Raza/Otros': item.marca,
+    'Ubicación': item.ubicacion,
+    'Custodio': item.custodio
+  }));
+
+  const worksheet = XLSX.utils.json_to_sheet(datosFormateados);
+
+  worksheet['!cols'] = [
+    { wch: 18 },
+    { wch: 18 },
+    { wch: 15 },
+    { wch: 20 },
+    { wch: 18 },
+    { wch: 25 }
+  ];
+
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Bienes Consultados");
+  XLSX.writeFile(workbook, 'bienes_exportados.xlsx');
 }
 
 export default function ConsultarBienes() {
@@ -46,7 +58,8 @@ export default function ConsultarBienes() {
           </div>
           <div className="stat-card">
             <span>Exportación</span>
-            <strong>CSV</strong>
+            {/* Actualizamos la etiqueta de CSV a Excel */}
+            <strong>Excel</strong>
           </div>
         </div>
       </div>
@@ -67,7 +80,8 @@ export default function ConsultarBienes() {
           <button
             className="btn-primary"
             disabled={resultados.length === 0}
-            onClick={() => descargarCSV(resultados)}
+            // Llamamos a la nueva función de Excel
+            onClick={() => descargarExcel(resultados)}
           >
             Exportar resultados
           </button>
@@ -85,7 +99,7 @@ export default function ConsultarBienes() {
               <h3>Resultado de búsqueda</h3>
               <p>Información disponible del bien consultado.</p>
             </div>
-            <span className="table-badge">1 ficha encontrada</span>
+            <span className="table-badge">{resultados.length} ficha encontrada</span>
           </div>
           <div className="table-responsive">
             <table className="bienes-table">
@@ -96,6 +110,7 @@ export default function ConsultarBienes() {
                   <th>Modelo</th>
                   <th>Marca/Raza/Otros</th>
                   <th>Ubicación</th>
+                  <th>Custodio</th>
                 </tr>
               </thead>
               <tbody>
@@ -106,6 +121,7 @@ export default function ConsultarBienes() {
                     <td>{bien.modelo}</td>
                     <td>{bien.marca}</td>
                     <td>{bien.ubicacion}</td>
+                    <td>{bien.custodio}</td>
                   </tr>
                 ))}
               </tbody>

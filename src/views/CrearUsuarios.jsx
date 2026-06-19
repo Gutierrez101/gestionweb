@@ -13,11 +13,8 @@ export default function CrearUsuarios() {
 
   const handleCrear = async (e) => {
     e.preventDefault();
-    
-    // 1. Hashear la contraseña por detrás
     const passwordHasheada = await hashPassword(usuario.password);
     
-    // 2. Preparar el objeto para enviar al backend
     const datosAEnviar = {
       ...usuario,
       password: passwordHasheada
@@ -26,7 +23,6 @@ export default function CrearUsuarios() {
     console.log("Datos encriptados a enviar a la BD:", datosAEnviar);
     alert(`Usuario ${usuario.nombre} creado correctamente.\n(Revisa la consola para ver el Hash)`);
     
-    // 3. Limpiar formulario
     setUsuario({ cedula: '', nombre: '', email: '', password: '', rol: 'Usuario' });
   };
 
@@ -66,7 +62,7 @@ export default function CrearUsuarios() {
           </div>
 
           <div className="form-group">
-            <label>Correo Electrónico Institucional</label>
+            <label>Correo Electrónico</label>
             <input 
               type="email" 
               value={usuario.email} 
@@ -77,12 +73,12 @@ export default function CrearUsuarios() {
           </div>
 
           <div className="form-group">
-            <label>Contraseña Temporal</label>
+            <label>Contraseña</label>
             <input 
               type="password" 
               value={usuario.password} 
               onChange={(e) => setUsuario({...usuario, password: e.target.value})} 
-              placeholder="Asigne una contraseña temporal"
+              placeholder="Asigne una contraseña"
               required 
             />
           </div>

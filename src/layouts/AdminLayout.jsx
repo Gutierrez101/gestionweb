@@ -36,7 +36,7 @@ export default function AdminLayout() {
           )}
 
           {/* Vistas para Estudiantes/Usuarios */}
-          {(rol === 'Estudiante' || rol === 'Usuario') && (
+          {(rol === 'Docente' || rol === 'Usuario') && (
             <li>
               <NavLink to="/consultar-bienes" className={({ isActive }) => isActive ? 'sidebar-button is-active' : 'sidebar-button'}>
                 Consultar Bienes
