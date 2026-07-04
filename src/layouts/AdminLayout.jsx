@@ -32,6 +32,7 @@ export default function AdminLayout() {
               <li><NavLink to="/crear-usuarios" className={({ isActive }) => isActive ? 'sidebar-button is-active' : 'sidebar-button'}>Crear Usuarios</NavLink></li>
               <li><NavLink to="/registrar-bienes" className={({ isActive }) => isActive ? 'sidebar-button is-active' : 'sidebar-button'}>Registrar Bienes</NavLink></li>
               <li><NavLink to="/cargar-datos" className={({ isActive }) => isActive ? 'sidebar-button is-active' : 'sidebar-button'}>Cargar Datos</NavLink></li>
+              <li><NavLink to="/auditoria" className={({ isActive }) => isActive ? 'sidebar-button is-active' : 'sidebar-button'}>Revisiones</NavLink></li>
             </>
           )}
 

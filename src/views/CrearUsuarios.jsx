@@ -1,29 +1,31 @@
 import { useState } from 'react';
 
-// Función nativa del navegador para hashear la contraseña
-async function hashPassword(password) {
-  const msgBuffer = new TextEncoder().encode(password);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
+const API_URL = 'http://localhost:5051/api';
 
 export default function CrearUsuarios() {
-  const [usuario, setUsuario] = useState({ cedula: '', nombre: '', email: '', password: '', rol: 'Usuario' });
+  const [usuario, setUsuario] = useState({ cedula: '', nombre: '', email: '', password: '' });
 
   const handleCrear = async (e) => {
     e.preventDefault();
-    const passwordHasheada = await hashPassword(usuario.password);
-    
-    const datosAEnviar = {
-      ...usuario,
-      password: passwordHasheada
-    };
+    try {
+      const token = localStorage.getItem('token');
+      // Endpoint de registro autónomo (Impondrá rol 'User' según tu spec)
+      const res = await fetch(`${API_URL}/auth/registro`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(usuario)
+      });
 
-    console.log("Datos encriptados a enviar a la BD:", datosAEnviar);
-    alert(`Usuario ${usuario.nombre} creado correctamente.\n(Revisa la consola para ver el Hash)`);
-    
-    setUsuario({ cedula: '', nombre: '', email: '', password: '', rol: 'Usuario' });
+      if (res.ok) {
+        alert(`Usuario ${usuario.nombre} creado correctamente en BD.`);
+        setUsuario({ cedula: '', nombre: '', email: '', password: '' });
+      } else {
+        alert('Error al crear el usuario. Verifica los datos.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error de conexión con la API.');
+    }
   };
 
   return (
@@ -32,75 +34,16 @@ export default function CrearUsuarios() {
         <div className="hero-copy">
           <span className="eyebrow">Gestión</span>
           <h2>Administración de Usuarios</h2>
-          <p>Registre personal o estudiantes. Las credenciales se protegerán automáticamente mediante encriptación.</p>
+          <p>Registre personal o estudiantes. El sistema encriptará la contraseña automáticamente.</p>
         </div>
       </div>
-
       <div style={{ maxWidth: '600px', margin: '0 auto' }}>
         <form onSubmit={handleCrear}>
-          
-          <div className="form-group">
-            <label>Cédula de Identidad</label>
-            <input 
-              type="text" 
-              value={usuario.cedula} 
-              onChange={(e) => setUsuario({...usuario, cedula: e.target.value})} 
-              placeholder="Ej: 17xxxxxx45"
-              required 
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Nombre Completo</label>
-            <input 
-              type="text" 
-              value={usuario.nombre} 
-              onChange={(e) => setUsuario({...usuario, nombre: e.target.value})} 
-              placeholder="Ej: Juan Pérez"
-              required 
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Correo Electrónico</label>
-            <input 
-              type="email" 
-              value={usuario.email} 
-              onChange={(e) => setUsuario({...usuario, email: e.target.value})} 
-              placeholder="ejemplo@espe.edu.ec"
-              required 
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Contraseña</label>
-            <input 
-              type="password" 
-              value={usuario.password} 
-              onChange={(e) => setUsuario({...usuario, password: e.target.value})} 
-              placeholder="Asigne una contraseña"
-              required 
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Rol de Sistema</label>
-            <select 
-              value={usuario.rol} 
-              onChange={(e) => setUsuario({...usuario, rol: e.target.value})}
-              style={{
-                width: '100%', padding: '12px', border: '1px solid var(--border)',
-                borderRadius: '10px', outline: 'none', backgroundColor: '#fff', color: '#333'
-              }}
-            >
-              <option value="Usuario">Usuario / Estudiante</option>
-              <option value="Administrador">Administrador</option>
-            </select>
-          </div>
-
-          <button type="submit" className="btn-primary" style={{ marginTop: '10px' }}>
-            Registrar Cuenta Segura
-          </button>
+          <div className="form-group"><label>Cédula</label><input type="text" value={usuario.cedula} onChange={(e) => setUsuario({...usuario, cedula: e.target.value})} required /></div>
+          <div className="form-group"><label>Nombre Completo</label><input type="text" value={usuario.nombre} onChange={(e) => setUsuario({...usuario, nombre: e.target.value})} required /></div>
+          <div className="form-group"><label>Correo Electrónico</label><input type="email" value={usuario.email} onChange={(e) => setUsuario({...usuario, email: e.target.value})} required /></div>
+          <div className="form-group"><label>Contraseña Temporal</label><input type="password" value={usuario.password} onChange={(e) => setUsuario({...usuario, password: e.target.value})} required /></div>
+          <button type="submit" className="btn-primary">Registrar Cuenta Segura</button>
         </form>
       </div>
     </div>

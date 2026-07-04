@@ -1,4 +1,3 @@
-// src/App.jsx
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 
@@ -12,17 +11,16 @@ import CrearUsuarios from './views/CrearUsuarios';
 import RegistrarBienes from './views/RegistrarBienes';
 import CargarDatos from './views/CargarDatos';
 import ConsultarBienes from './views/ConsultarBienes';
+import Auditoria from './views/Auditoria';
 
-// Componente Guardián para proteger rutas por Rol
+//Componente de gestion de roles
 function ProtectedRoute({ children, allowedRoles }) {
   const rol = localStorage.getItem('rol');
 
-  // Si no ha iniciado sesión, redirigir al Login
   if (!rol) {
     return <Navigate to="/" replace />;
   }
 
-  // Si el rol no está autorizado, mostrar tarjeta de error visual
   if (allowedRoles && !allowedRoles.includes(rol)) {
     return (
       <div className="view-card" style={{ textAlign: 'center', marginTop: '40px', padding: '40px' }}>
@@ -75,6 +73,13 @@ export default function App() {
               <ConsultarBienes />
             </ProtectedRoute>
           } />
+          
+          <Route path="/auditoria" element={
+            <ProtectedRoute allowedRoles={['Administrador']}>
+              <Auditoria />
+            </ProtectedRoute>
+          } />
+          
         </Route>
       </Routes>
     </Router>
