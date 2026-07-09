@@ -770,3 +770,23 @@ body {
 @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
 }
+
+.btn-cancel {
+  background-color: #f8fbf9; 
+  color: var(--text-dark); 
+  border: 1px solid #cdd6d2;
+  border-radius: 12px;
+  padding: 12px 20px;
+  cursor: pointer; 
+  font-weight: 700;
+  font-size: 1rem;
+  transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+}
+
+.btn-cancel:hover { 
+  background-color: #e6ebea; 
+  border-color: #b5c2bc;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.06); 
+}

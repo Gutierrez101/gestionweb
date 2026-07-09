@@ -9,7 +9,6 @@ export default function CrearUsuarios() {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      // Endpoint de registro autónomo (Impondrá rol 'User' según tu spec)
       const res = await fetch(`${API_URL}/auth/registro`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -34,7 +33,7 @@ export default function CrearUsuarios() {
         <div className="hero-copy">
           <span className="eyebrow">Gestión</span>
           <h2>Administración de Usuarios</h2>
-          <p>Registre personal o estudiantes. El sistema encriptará la contraseña automáticamente.</p>
+          <p>Registro de nuevo personal docente</p>
         </div>
       </div>
       <div style={{ maxWidth: '600px', margin: '0 auto' }}>
