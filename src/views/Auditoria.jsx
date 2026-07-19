@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 
+//const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5051/api';
 const API_URL = 'http://localhost:5051/api';
 
 export default function Auditoria() {
@@ -10,10 +11,7 @@ export default function Auditoria() {
   const token = localStorage.getItem('token');
   const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
 
-  //Lista de revisiones
-  useEffect(() => {
-    cargarRevisiones();
-  }, []);
+  useEffect(() => { cargarRevisiones(); }, []);
 
   const cargarRevisiones = async () => {
     try {
@@ -26,7 +24,7 @@ export default function Auditoria() {
     try {
       const res = await fetch(`${API_URL}/revisiones`, { method: 'POST', headers });
       if (res.ok) {
-        alert('Nueva auditoría iniciada');
+        alert('Nueva auditoría física iniciada en el servidor.');
         cargarRevisiones();
       }
     } catch (e) { console.error(e); }
@@ -40,16 +38,17 @@ export default function Auditoria() {
       const res = await fetch(`${API_URL}/revisiones/${revisionActiva.id}/escanear`, {
         method: 'POST',
         headers,
-        body: JSON.stringify({ codigoBarras: codigoIngresado })
+        // CAMBIO CRÍTICO DE LA API OPENAPI: Enviamos codigoBien en lugar de codigoBarras
+        body: JSON.stringify({ codigoBien: codigoIngresado })
       });
 
       if (res.ok) {
-        alert('Código verificado correctamente.');
-        setCodigoIngresado('');
+        alert('✅ Código verificado y marcado en la revisión.');
+        setCodigoIngresado(''); 
       } else if (res.status === 409) {
-        alert('Conflicto: Este código ya fue escaneado en esta revisión.');
+        alert('⚠️ Conflicto: Este bien ya fue escaneado en la sesión actual.');
       } else if (res.status === 404) {
-        alert('Error: Bien no encontrado en el sistema.');
+        alert('❌ Error: El código del bien no existe en el catálogo.');
       }
     } catch (e) { console.error(e); }
   };
@@ -61,7 +60,7 @@ export default function Auditoria() {
       const res = await fetch(`${API_URL}/revisiones/${revisionActiva.id}/finalizar`, { method: 'POST', headers });
       if (res.ok) {
         const resultado = await res.json();
-        alert(`Revisión finalizada. Elementos faltantes: ${resultado.elementosFaltantes}`);
+        alert(`🔒 Revisión finalizada exitosamente.\nElementos faltantes detectados: ${resultado.elementosFaltantes}`);
         setRevisionActiva(null);
         cargarRevisiones();
       }
@@ -72,9 +71,9 @@ export default function Auditoria() {
     <div className="view-card">
       <div className="hero-panel hero-panel-secondary">
         <div className="hero-copy">
-          <span className="eyebrow">Control y Seguridad</span>
+          <span className="eyebrow">Control Patrimonial</span>
           <h2>Auditoría de Inventario</h2>
-          <p>Inicia sesiones de revisión física, registra los códigos de los bienes encontrados y finaliza para obtener reportes de faltantes.</p>
+          <p>Módulo de escaneo y verificación física conectado en tiempo real al servidor central.</p>
         </div>
       </div>
 
@@ -85,17 +84,18 @@ export default function Auditoria() {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '20px' }}>
+        
         <div className="table-shell" style={{ padding: '20px' }}>
           <h3>Historial de Revisiones</h3>
           <ul style={{ listStyle: 'none', padding: 0 }}>
-            {revisiones.length === 0 ? <p className="empty-state">No hay revisiones registradas.</p> : null}
+            {revisiones.length === 0 ? <p className="empty-state">No hay revisiones registradas en la red.</p> : null}
             {revisiones.map(rev => (
               <li 
                 key={rev.id} 
                 style={{ padding: '15px', border: '1px solid #cdd6d2', borderRadius: '10px', marginBottom: '10px', cursor: 'pointer', background: rev.estado === 'EnCurso' ? '#f1faf3' : '#fff' }}
                 onClick={() => setRevisionActiva(rev)}
               >
-                <strong>ID:</strong> {rev.id.substring(0,8)}... <br/>
+                <strong>Sesión UUID:</strong> {rev.id.substring(0,8)}... <br/>
                 <strong>Estado:</strong> <span className="pill">{rev.estado}</span> <br/>
                 <small>Inicio: {new Date(rev.fechaInicio).toLocaleDateString()}</small>
               </li>
@@ -109,10 +109,10 @@ export default function Auditoria() {
             
             {revisionActiva.estado === 'EnCurso' ? (
               <>
-                <p>Escribe el código de barras del bien para registrar su presencia física.</p>
+                <p>Ingresa o escanea el <strong>Código del Bien</strong> para confirmar su presencia física en el laboratorio.</p>
                 <form onSubmit={procesarEscaneoManual} style={{ marginTop: '20px' }}>
                   <div className="form-group">
-                    <label>Ingresar Código de Barras</label>
+                    <label>Código del Bien</label>
                     <input 
                       type="text" 
                       value={codigoIngresado} 
@@ -122,7 +122,7 @@ export default function Auditoria() {
                     />
                   </div>
                   <button type="submit" className="btn-primary" style={{ width: '100%' }}>
-                    Registrar Código
+                    Registrar Hallazgo
                   </button>
                 </form>
 
@@ -134,14 +134,14 @@ export default function Auditoria() {
               </>
             ) : (
               <div className="empty-state" style={{ textAlign: 'center' }}>
-                <strong style={{ color: 'var(--espe-green-dark)' }}>Esta sesión ya está finalizada.</strong>
+                <strong style={{ color: 'var(--espe-green-dark)' }}>Esta sesión ya fue clausurada.</strong>
                 <p>Finalizó el: {new Date(revisionActiva.fechaFin).toLocaleString()}</p>
               </div>
             )}
           </div>
         ) : (
           <div className="empty-state" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <p>Selecciona una revisión del panel izquierdo para escanear bienes.</p>
+            <p>Selecciona una revisión del panel izquierdo para comenzar.</p>
           </div>
         )}
       </div>
