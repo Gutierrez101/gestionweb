@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5051/api';
+const API_URL = 'http://localhost:5051/api';
 
 function VistaAdmin({ stats, bienes, custodios, cargando }) {
   const obtenerNombreCustodio = (uuid) => {
@@ -63,6 +63,7 @@ function VistaAdmin({ stats, bienes, custodios, cargando }) {
                   <th>Código</th>
                   <th>Nombre del bien</th>
                   <th>Serie / Modelo</th>
+                  <th>Imagen</th>
                   <th>Ubicación</th>
                   <th>Custodio Asignado</th>
                 </tr>
@@ -146,6 +147,15 @@ function VistaDocente({ stats, misBienes, cargando }) {
               <tbody>
                 {misBienes.map(bien => (
                   <tr key={bien.id}>
+                    <td>
+                      {bien.rutaImagen ? (<img src={'${API_URL}/imagenes/${bien.rutaImagen}'}
+                      alt={bien.nombreBien}
+                      style={{width:'45px', height: '45px', objectFit: 'cover', borderRadius: '6px', border:'1px solid #eee'}}
+                      />
+                    ) : (
+                        <div style={{width:'45px',height:'45px', background: '#f0f0f0', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', color: '#999'}}></div>
+                    )}                    
+                    </td>
                     <td><strong>{bien.codigoBien}</strong></td>
                     <td>{bien.nombreBien}</td>
                     <td>{bien.serie}</td>
