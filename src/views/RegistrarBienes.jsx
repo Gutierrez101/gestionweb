@@ -4,33 +4,37 @@ const API_URL = 'http://localhost:5051/api';
 
 export default function RegistrarBienes() {
   const [bienes, setBienes] = useState([]);
+  const [usuarios, setUsuarios] = useState([]);
   const [mostrarModal, setMostrarModal] = useState(false);
   const [cargandoDatos, setCargandoDatos] = useState(true);
   const [cargandoGuardar, setCargandoGuardar] = useState(false);
   const [mensaje, setMensaje] = useState({ texto: '', tipo: '' });
   
   const [form, setForm] = useState({
-    codigoBien: '', nombreBien: '', serie: '', modelo: '', marcaRazaOtros: '', ubicacion: ''
+    codigoBien: '', nombreBien: '', serie: '', modelo: '', marcaRazaOtros: '', ubicacion: '', usuarioIdPropietario: ''
   });
   const [archivoImagen, setArchivoImagen] = useState(null);
 
   useEffect(() => {
-    cargarBienes();
+    cargarDatos();
   }, []);
 
-  const cargarBienes = async () => {
+  const cargarDatos = async () => {
     setCargandoDatos(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${API_URL}/elementos`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setBienes(data);
-      }
+      const headers = { 'Authorization': `Bearer ${token}` };
+      
+      const [resBienes, resUsuarios] = await Promise.all([
+        fetch(`${API_URL}/elementos`, { headers }),
+        fetch(`${API_URL}/usuarios`, { headers })
+      ]);
+
+      if (resBienes.ok) setBienes(await resBienes.json());
+      if (resUsuarios.ok) setUsuarios(await resUsuarios.json());
+      
     } catch (error) {
-      console.error("Error al cargar la tabla:", error);
+      console.error("Error al cargar los datos:", error);
     } finally {
       setCargandoDatos(false);
     }
@@ -40,30 +44,37 @@ export default function RegistrarBienes() {
   
   const abrirModal = () => {
     setMensaje({ texto: '', tipo: '' });
-    setForm({ codigoBien: '', nombreBien: '', serie: '', modelo: '', marcaRazaOtros: '', ubicacion: '' });
+    setForm({ codigoBien: '', nombreBien: '', serie: '', modelo: '', marcaRazaOtros: '', ubicacion: '', usuarioIdPropietario: '' });
     setArchivoImagen(null);
     setMostrarModal(true);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validación manual de imagen obligatoria
+    if (!archivoImagen) {
+      setMensaje({ texto: 'La fotografía del bien es obligatoria.', tipo: 'error' });
+      return;
+    }
+
     setCargandoGuardar(true);
     setMensaje({ texto: '', tipo: '' });
 
     try {
       const token = localStorage.getItem('token');
       const headersAuth = { 'Authorization': `Bearer ${token}` };
-      let rutaImagenId = null;
+      
+      // 1. Subir imagen obligatoria
+      const formData = new FormData();
+      formData.append('archivo', archivoImagen);
+      const imgRes = await fetch(`${API_URL}/imagenes`, { method: 'POST', headers: headersAuth, body: formData });
+      
+      if (!imgRes.ok) throw new Error("Error al subir la fotografía.");
+      const imgData = await imgRes.json();
+      const rutaImagenId = imgData.id;
 
-      if (archivoImagen) {
-        const formData = new FormData();
-        formData.append('archivo', archivoImagen);
-        const imgRes = await fetch(`${API_URL}/imagenes`, { method: 'POST', headers: headersAuth, body: formData });
-        if (!imgRes.ok) throw new Error("Error al subir la fotografía.");
-        const imgData = await imgRes.json();
-        rutaImagenId = imgData.id;
-      }
-
+      // 2. Guardar el bien con el UUID de la imagen y el ID del custodio
       const elementoPayload = { ...form, rutaImagen: rutaImagenId };
       const res = await fetch(`${API_URL}/elementos`, {
         method: 'POST',
@@ -73,8 +84,8 @@ export default function RegistrarBienes() {
 
       if (!res.ok) throw new Error("Error al registrar el bien en la base de datos.");
 
-      setMensaje({ texto: '¡Bien registrado exitosamente!', tipo: 'success' });
-      cargarBienes();
+      setMensaje({ texto: '¡Bien registrado y asignado exitosamente!', tipo: 'success' });
+      cargarDatos();
       setTimeout(() => setMostrarModal(false), 1500);
 
     } catch (error) {
@@ -87,19 +98,15 @@ export default function RegistrarBienes() {
   return (
     <div className="view-card" style={{ display: 'flex', flexDirection: 'column', gap: '25px' }}>
       
-      {/* Hero Panel Estilizado */}
       <div className="hero-panel hero-panel-secondary" style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
         <div className="hero-copy">
           <span className="eyebrow" style={{ letterSpacing: '1px', textTransform: 'uppercase' }}>Gestión de Inventario</span>
           <h2 style={{ margin: '5px 0' }}>Catálogo de Bienes Registrados</h2>
-          <p style={{ margin: 0, opacity: 0.9 }}>Visualice, gestione y registre los equipos individuales de la institución.</p>
+          <p style={{ margin: 0, opacity: 0.9 }}>Visualice, gestione y asigne los equipos individuales a sus respectivos custodios.</p>
         </div>
       </div>
 
-      {/* Tabla con Action Bar integrado */}
       <div className="table-shell" style={{ borderRadius: '12px', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', background: '#fff', padding: '25px' }}>
-        
-        {/* Cabecera de la tabla y botón (Posición correcta) */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #f1f3f4', paddingBottom: '20px', marginBottom: '20px' }}>
           <div>
             <h3 style={{ margin: 0, color: 'var(--text-dark)' }}>Listado General</h3>
@@ -124,27 +131,32 @@ export default function RegistrarBienes() {
           <div className="empty-state" style={{ padding: '50px 20px', textAlign: 'center', background: '#f8fbf9', borderRadius: '12px', border: '1px dashed #cdd6d2' }}>
             <span style={{ fontSize: '3rem', display: 'block', marginBottom: '15px' }}>📦</span>
             <strong style={{ fontSize: '1.2rem', color: 'var(--espe-green-dark)' }}>El catálogo está vacío</strong>
-            <p style={{ color: '#5f6f68', marginTop: '8px' }}>Haga clic en "+ Nuevo Bien" para comenzar a registrar equipos.</p>
           </div>
         ) : (
           <div className="table-responsive">
             <table className="bienes-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ background: '#f8fbf9' }}>
-                  <th style={{ padding: '15px' }}>Código</th>
+                  <th style={{ padding: '15px' }}>Foto</th>
+                  <th>Código</th>
                   <th>Nombre del bien</th>
                   <th>Serie</th>
-                  <th>Modelo</th>
                   <th>Ubicación</th>
                 </tr>
               </thead>
               <tbody>
                 {bienes.map(bien => (
                   <tr key={bien.id} style={{ borderBottom: '1px solid #f1f3f4', transition: 'background 0.2s' }} onMouseOver={(e) => e.currentTarget.style.background = '#fcfcfc'} onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}>
-                    <td style={{ padding: '15px' }}><strong>{bien.codigoBien}</strong></td>
+                    <td style={{ padding: '15px' }}>
+                      {bien.rutaImagen ? (
+                        <img src={`${API_URL}/imagenes/${bien.rutaImagen}`} alt="Foto" style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #eee' }} />
+                      ) : (
+                        <div style={{ width: '40px', height: '40px', background: '#e1ebe5', borderRadius: '6px', display: 'grid', placeItems: 'center', fontSize: '0.7rem' }}>N/A</div>
+                      )}
+                    </td>
+                    <td><strong>{bien.codigoBien}</strong></td>
                     <td>{bien.nombreBien}</td>
                     <td style={{ color: '#5f6f68' }}>{bien.serie || '-'}</td>
-                    <td style={{ color: '#5f6f68' }}>{bien.modelo || '-'}</td>
                     <td><span className="pill" style={{ background: '#e1ebe5', color: 'var(--espe-green-dark)', padding: '6px 12px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: '500' }}>{bien.ubicacion || 'Sin Asignar'}</span></td>
                   </tr>
                 ))}
@@ -156,16 +168,12 @@ export default function RegistrarBienes() {
 
       {mostrarModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 30, 20, 0.6)', backdropFilter: 'blur(5px)', display: 'grid', placeItems: 'center', zIndex: 1000, padding: '20px', boxSizing: 'border-box' }}>
-          
           <div className="form-card" style={{ background: 'white', padding: '35px', borderRadius: '16px', width: '100%', maxWidth: '550px', maxHeight: '85vh', overflowY: 'auto', position: 'relative', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', boxSizing: 'border-box' }}>
-            
-            <button onClick={() => setMostrarModal(false)} style={{ position: 'absolute', top: '20px', right: '20px', background: '#f1f3f4', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', cursor: 'pointer', color: '#5f6f68', transition: 'background 0.2s' }} onMouseOver={(e) => e.currentTarget.style.background = '#e1ebe5'} onMouseOut={(e) => e.currentTarget.style.background = '#f1f3f4'}>
-              &times;
-            </button>
+            <button onClick={() => setMostrarModal(false)} style={{ position: 'absolute', top: '20px', right: '20px', background: '#f1f3f4', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', cursor: 'pointer', color: '#5f6f68', transition: 'background 0.2s' }}>&times;</button>
             
             <div style={{ borderBottom: '2px solid #f1f3f4', paddingBottom: '15px', marginBottom: '25px' }}>
               <h3 style={{ margin: 0, color: 'var(--espe-green-dark)', fontSize: '1.5rem' }}>Registrar Nuevo Bien</h3>
-              <p style={{ margin: '5px 0 0 0', color: '#5f6f68', fontSize: '0.9rem' }}>Complete la ficha técnica del equipo.</p>
+              <p style={{ margin: '5px 0 0 0', color: '#5f6f68', fontSize: '0.9rem' }}>Complete la ficha técnica y asigne un custodio.</p>
             </div>
             
             {mensaje.texto && (
@@ -177,40 +185,49 @@ export default function RegistrarBienes() {
             <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <label style={{ fontSize: '0.85rem', fontWeight: '600', color: '#333' }}>Código del Bien *</label>
-                <input type="text" name="codigoBien" value={form.codigoBien} onChange={handleChange} required style={{ padding: '10px 12px', border: '1px solid #cdd6d2', borderRadius: '8px', outline: 'none', transition: 'border 0.2s' }} onFocus={(e) => e.target.style.borderColor = 'var(--espe-green)'} onBlur={(e) => e.target.style.borderColor = '#cdd6d2'} />
+                <input type="text" name="codigoBien" value={form.codigoBien} onChange={handleChange} required style={{ padding: '10px 12px', border: '1px solid #cdd6d2', borderRadius: '8px', outline: 'none' }} />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <label style={{ fontSize: '0.85rem', fontWeight: '600', color: '#333' }}>Nombre del Bien *</label>
-                <input type="text" name="nombreBien" value={form.nombreBien} onChange={handleChange} required style={{ padding: '10px 12px', border: '1px solid #cdd6d2', borderRadius: '8px', outline: 'none' }} onFocus={(e) => e.target.style.borderColor = 'var(--espe-green)'} onBlur={(e) => e.target.style.borderColor = '#cdd6d2'} />
+                <input type="text" name="nombreBien" value={form.nombreBien} onChange={handleChange} required style={{ padding: '10px 12px', border: '1px solid #cdd6d2', borderRadius: '8px', outline: 'none' }} />
               </div>
+              
+              {/* Campo Nuevo: Custodio */}
+              <div style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '0.85rem', fontWeight: '600', color: '#333' }}>Custodio Asignado *</label>
+                <select name="usuarioIdPropietario" value={form.usuarioIdPropietario} onChange={handleChange} required style={{ padding: '10px 12px', border: '1px solid #cdd6d2', borderRadius: '8px', outline: 'none', background: '#fff' }}>
+                  <option value="">-- Seleccione un usuario --</option>
+                  {usuarios.map(u => (
+                    <option key={u.id} value={u.id}>{u.nombre} ({u.email})</option>
+                  ))}
+                </select>
+              </div>
+
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <label style={{ fontSize: '0.85rem', fontWeight: '600', color: '#333' }}>Número de Serie</label>
-                <input type="text" name="serie" value={form.serie} onChange={handleChange} style={{ padding: '10px 12px', border: '1px solid #cdd6d2', borderRadius: '8px', outline: 'none' }} onFocus={(e) => e.target.style.borderColor = 'var(--espe-green)'} onBlur={(e) => e.target.style.borderColor = '#cdd6d2'} />
+                <input type="text" name="serie" value={form.serie} onChange={handleChange} style={{ padding: '10px 12px', border: '1px solid #cdd6d2', borderRadius: '8px', outline: 'none' }} />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <label style={{ fontSize: '0.85rem', fontWeight: '600', color: '#333' }}>Modelo</label>
-                <input type="text" name="modelo" value={form.modelo} onChange={handleChange} style={{ padding: '10px 12px', border: '1px solid #cdd6d2', borderRadius: '8px', outline: 'none' }} onFocus={(e) => e.target.style.borderColor = 'var(--espe-green)'} onBlur={(e) => e.target.style.borderColor = '#cdd6d2'} />
+                <input type="text" name="modelo" value={form.modelo} onChange={handleChange} style={{ padding: '10px 12px', border: '1px solid #cdd6d2', borderRadius: '8px', outline: 'none' }} />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <label style={{ fontSize: '0.85rem', fontWeight: '600', color: '#333' }}>Marca / Otros</label>
-                <input type="text" name="marcaRazaOtros" value={form.marcaRazaOtros} onChange={handleChange} style={{ padding: '10px 12px', border: '1px solid #cdd6d2', borderRadius: '8px', outline: 'none' }} onFocus={(e) => e.target.style.borderColor = 'var(--espe-green)'} onBlur={(e) => e.target.style.borderColor = '#cdd6d2'} />
+                <input type="text" name="marcaRazaOtros" value={form.marcaRazaOtros} onChange={handleChange} style={{ padding: '10px 12px', border: '1px solid #cdd6d2', borderRadius: '8px', outline: 'none' }} />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <label style={{ fontSize: '0.85rem', fontWeight: '600', color: '#333' }}>Ubicación Física</label>
-                <input type="text" name="ubicacion" value={form.ubicacion} onChange={handleChange} style={{ padding: '10px 12px', border: '1px solid #cdd6d2', borderRadius: '8px', outline: 'none' }} onFocus={(e) => e.target.style.borderColor = 'var(--espe-green)'} onBlur={(e) => e.target.style.borderColor = '#cdd6d2'} />
+                <input type="text" name="ubicacion" value={form.ubicacion} onChange={handleChange} style={{ padding: '10px 12px', border: '1px solid #cdd6d2', borderRadius: '8px', outline: 'none' }} />
               </div>
               
-              {/* Contenedor de Imagen Estilizado */}
               <div style={{ gridColumn: '1 / -1', background: '#f8fbf9', padding: '15px', borderRadius: '8px', border: '1px dashed #cdd6d2' }}>
-                <label style={{ display: 'block', fontWeight: '600', fontSize: '0.85rem', color: '#333', marginBottom: '8px' }}>Fotografía del Equipo (Obligatorio)</label>
-                <input type="file" accept="image/*" onChange={(e) => setArchivoImagen(e.target.files[0])} style={{ width: '100%', fontSize: '0.9rem', color: '#5f6f68' }} />
+                <label style={{ display: 'block', fontWeight: '600', fontSize: '0.85rem', color: '#333', marginBottom: '8px' }}>📸 Fotografía del Equipo * (Obligatoria)</label>
+                <input type="file" accept="image/*" onChange={(e) => setArchivoImagen(e.target.files[0])} required style={{ width: '100%', fontSize: '0.9rem', color: '#5f6f68' }} />
               </div>
               
               <div style={{ gridColumn: '1 / -1', marginTop: '10px', display: 'flex', gap: '15px', justifyContent: 'flex-end', borderTop: '2px solid #f1f3f4', paddingTop: '20px' }}>
-                <button type="button" onClick={() => setMostrarModal(false)} style={{ padding: '12px 24px', background: '#fff', border: '1px solid #cdd6d2', borderRadius: '8px', cursor: 'pointer', color: '#333', fontWeight: '600', transition: 'background 0.2s' }} onMouseOver={(e) => e.currentTarget.style.background = '#f8fbf9'} onMouseOut={(e) => e.currentTarget.style.background = '#fff'}>
-                  Cancelar
-                </button>
-                <button type="submit" disabled={cargandoGuardar} style={{ padding: '12px 24px', background: 'var(--espe-green)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+                <button type="button" onClick={() => setMostrarModal(false)} style={{ padding: '12px 24px', background: '#fff', border: '1px solid #cdd6d2', borderRadius: '8px', cursor: 'pointer', color: '#333', fontWeight: '600' }}>Cancelar</button>
+                <button type="submit" disabled={cargandoGuardar} style={{ padding: '12px 24px', background: 'var(--espe-green)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
                   {cargandoGuardar ? 'Procesando...' : 'Guardar Ficha Técnica'}
                 </button>
               </div>
