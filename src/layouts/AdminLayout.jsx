@@ -36,14 +36,6 @@ export default function AdminLayout() {
             </>
           )}
 
-          {/* Vistas para Docentes */}
-          {(rol === 'Docente') && (
-            <li>
-              <NavLink to="/consultar-bienes" className={({ isActive }) => isActive ? 'sidebar-button is-active' : 'sidebar-button'}>
-                Consultar Bienes
-              </NavLink>
-            </li>
-          )}
         </ul>
 
         <button className="btn-logout" onClick={handleLogout}>

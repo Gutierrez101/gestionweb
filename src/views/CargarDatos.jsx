@@ -1,9 +1,22 @@
 import { useState, useEffect } from 'react';
 
-const API_URL = 'http://localhost:5051/api';
+const API_URL = 'http://192.168.0.100:80/api';
+const API_FALLBACK_URL = 'http://localhost:5051/api';
+
+const fetchApi = async (endpoint, options = {}) => {
+  try {
+    return await fetch(`${API_URL}${endpoint}`, options);
+  } catch (error) {
+    if (error instanceof TypeError) {
+      return await fetch(`${API_FALLBACK_URL}${endpoint}`, options);
+    }
+    throw error;
+  }
+};
 
 export default function CargarDatos() {
   const [usuarios, setUsuarios] = useState([]);
+  const [errorUsuarios, setErrorUsuarios] = useState('');
   const [form, setForm] = useState({
     codigoBien: '', nombreBien: '', serie: '', modelo: '', marcaRazaOtros: '', ubicacion: '', usuarioIdPropietario: ''
   });
@@ -20,10 +33,15 @@ export default function CargarDatos() {
     const fetchUsuarios = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch(`${API_URL}/usuarios`, { headers: { 'Authorization': `Bearer ${token}` } });
-        if (res.ok) setUsuarios(await res.json());
+        const res = await fetchApi('/usuarios', { headers: { 'Authorization': `Bearer ${token}` } });
+        if (!res.ok) {
+          const errorText = await res.text();
+          throw new Error(`${res.status} ${res.statusText}: ${errorText}`);
+        }
+        setUsuarios(await res.json());
       } catch (error) {
-        console.error("Error al cargar usuarios", error);
+        console.error('Error al cargar usuarios', error);
+        setErrorUsuarios('No se pudieron cargar los usuarios. Verifique su conexión y el servidor API.');
       }
     };
     fetchUsuarios();
@@ -85,7 +103,7 @@ export default function CargarDatos() {
     try {
       const token = localStorage.getItem('token');
       const formData = new FormData();
-      formData.append('file', archivoExcel); 
+      formData.append('archivo', archivoExcel); 
 
       const res = await fetch(`${API_URL}/elementos/importar`, {
         method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: formData
@@ -130,6 +148,11 @@ export default function CargarDatos() {
           {mensajeIndividual.texto && (
             <div style={{ padding: '12px', marginBottom: '20px', borderRadius: '8px', background: mensajeIndividual.tipo === 'success' ? '#e6f4ea' : '#fce8e6', color: mensajeIndividual.tipo === 'success' ? '#137333' : '#c5221f', display: 'flex', gap: '10px', alignItems: 'center', fontWeight: '500' }}>
                <span>{mensajeIndividual.tipo === 'success' ? '✅' : '⚠️'}</span> {mensajeIndividual.texto}
+            </div>
+          )}
+          {errorUsuarios && (
+            <div style={{ padding: '12px', marginBottom: '20px', borderRadius: '8px', background: '#fff4e5', color: '#9a3412', border: '1px solid #fcdcbf', display: 'flex', gap: '10px', alignItems: 'center', fontWeight: '500' }}>
+              <span>⚠️</span> {errorUsuarios}
             </div>
           )}
 

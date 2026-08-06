@@ -10,7 +10,6 @@ import Dashboard from './views/Dashboard';
 import CrearUsuarios from './views/CrearUsuarios';
 import RegistrarBienes from './views/RegistrarBienes';
 import CargarDatos from './views/CargarDatos';
-import ConsultarBienes from './views/ConsultarBienes';
 import Auditoria from './views/Auditoria';
 
 //Componente de gestion de roles
@@ -48,7 +47,11 @@ export default function App() {
         
         {/* Rutas Compartidas y Protegidas */}
         <Route element={<AdminLayout />}>
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard" element={
+            <ProtectedRoute allowedRoles={['Administrador']}>
+              <Dashboard />
+            </ProtectedRoute>
+          } />
           
           <Route path="/crear-usuarios" element={
             <ProtectedRoute allowedRoles={['Administrador']}>
@@ -65,12 +68,6 @@ export default function App() {
           <Route path="/cargar-datos" element={
             <ProtectedRoute allowedRoles={['Administrador']}>
               <CargarDatos />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/consultar-bienes" element={
-            <ProtectedRoute allowedRoles={['Docente']}>
-              <ConsultarBienes />
             </ProtectedRoute>
           } />
           

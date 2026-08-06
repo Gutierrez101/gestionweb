@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 
 //const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5051/api';
-const API_URL = 'http://localhost:5051/api';
+//const API_URL = 'http://localhost:5051/api';
+const API_URL = 'http://192.168.0.100:80/api';
 
 export default function ConsultarBienes() {
   const [busqueda, setBusqueda] = useState('');

@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const API_URL = 'http://localhost:5051/api';
+//const API_URL = 'http://localhost:5051/api';
+const API_URL = 'http://192.168.0.100:80/api';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -20,17 +21,12 @@ export default function Login() {
 
       if (res.ok) {
         const data = await res.json();
-        // Guardamos el token en localStorage
-        localStorage.setItem('token', data.token || data.Token); 
-        const rol = email.includes('admin') ? 'Administrador' : 'Docente';
+        localStorage.setItem('token', data.token || data.Token);
+        const rol = data.rol || 'Administrador';
         localStorage.setItem('rol', rol);
 
         setError('');
-        if(rol==='Administrador'){
-          navigate('/dashboard'); 
-        } else{
-          navigate('/consultar-bienes');
-        }
+        navigate('/dashboard');
       } else {
         setError('Credenciales incorrectas o usuario no registrado.');
       }

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const API_URL = 'http://localhost:5051/api';
+//const API_URL = 'http://localhost:5051/api';
+const API_URL = 'http://192.168.0.100:80/api';
 
 // ==========================================
 // 1. VISTA ADMINISTRADOR
@@ -106,103 +107,6 @@ function VistaAdmin({ stats, bienes, custodios, cargando }) {
   );
 }
 
-// ==========================================
-// 2. VISTA DOCENTE / CUSTODIO
-// ==========================================
-function VistaDocente({ stats, misBienes, cargando }) {
-  return (
-    <div className="view-card">
-      <div className="hero-panel hero-panel-secondary" style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
-        <div className="hero-copy">
-          <span className="eyebrow" style={{ letterSpacing: '1px' }}>Panel de Custodio / Docente</span>
-          <h2 style={{ margin: '5px 0' }}>Mi Inventario Asignado</h2>
-          <p style={{ margin: 0, opacity: 0.9 }}>Control y visualización de los equipos institucionales bajo tu responsabilidad física.</p>
-        </div>
-      </div>
-
-      <div style={{ marginTop: '30px' }}>
-        <h3 style={{ color: 'var(--espe-green-dark)', marginBottom: '20px' }}>Resumen de mi cuenta</h3>
-        {cargando ? <p style={{ color: '#5f6f68' }}>Sincronizando con el servidor...</p> : (
-          <div className="summary-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
-            <div className="summary-box" style={{ background: '#f8fbf9', border: '1px solid #cdd6d2', borderRadius: '12px' }}>
-              <span style={{ fontSize: '2.5rem', display: 'block', marginBottom: '10px' }}>📦</span>
-              <strong style={{ fontSize: '1.8rem' }}>{stats.misBienesCount}</strong>
-              <span style={{ color: '#5f6f68' }}>Equipos Bajo Mi Custodia</span>
-            </div>
-            <div className="summary-box" style={{ borderLeft: stats.auditoriasActivas > 0 ? '4px solid var(--espe-gold)' : '1px solid #dceadf', borderRadius: '12px' }}>
-              <span style={{ fontSize: '2.5rem', display: 'block', marginBottom: '10px' }}>🚨</span>
-              <strong style={{ fontSize: '1.8rem' }}>{stats.auditoriasActivas}</strong>
-              <span style={{ color: '#5f6f68' }}>Auditorías Institucionales Activas</span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="table-shell" style={{ marginTop: '35px', borderRadius: '12px', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', background: '#fff', padding: '25px' }}>
-        <div style={{ borderBottom: '2px solid #f1f3f4', paddingBottom: '20px', marginBottom: '20px' }}>
-          <h3 style={{ margin: 0, color: 'var(--text-dark)' }}>Equipos a mi Cargo ({misBienes.length})</h3>
-          <p style={{ margin: '5px 0 0 0', fontSize: '0.9rem', color: '#5f6f68' }}>Si notas algún daño o discrepancia, repórtalo de inmediato.</p>
-        </div>
-
-        {cargando ? <p style={{ padding: '20px' }}>Cargando mis equipos...</p> : misBienes.length === 0 ? (
-          <div className="empty-state" style={{ padding: '40px', textAlign: 'center', background: '#f8fbf9', borderRadius: '12px', border: '1px dashed #cdd6d2' }}>
-            <span style={{ fontSize: '3rem', display: 'block', marginBottom: '15px' }}>🍃</span>
-            <strong style={{ color: 'var(--text-dark)', fontSize: '1.1rem' }}>No tienes equipos asignados actualmente.</strong>
-            <p style={{ color: '#5f6f68', margin: '8px 0 0 0' }}>El administrador del laboratorio aún no ha registrado bienes bajo tu usuario.</p>
-          </div>
-        ) : (
-          <div className="table-responsive">
-            <table className="bienes-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ background: '#f8fbf9' }}>
-                  <th style={{ padding: '15px' }}>Fotografía</th>
-                  <th>Código</th>
-                  <th>Nombre del bien</th>
-                  <th>Serie / Modelo</th>
-                  <th>Ubicación</th>
-                </tr>
-              </thead>
-              <tbody>
-                {misBienes.map(bien => (
-                  <tr key={bien.id} style={{ borderBottom: '1px solid #f1f3f4', transition: 'background 0.2s' }}>
-                    <td style={{ padding: '15px' }}>
-                      {bien.rutaImagen ? (
-                        <img 
-                          src={`${API_URL}/imagenes/${bien.rutaImagen}`} 
-                          alt="Bien" 
-                          style={{ width: '55px', height: '55px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #cdd6d2', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }} 
-                        />
-                      ) : (
-                        <div style={{ width: '55px', height: '55px', background: '#f1f3f4', borderRadius: '8px', display: 'grid', placeItems: 'center', fontSize: '0.7rem', color: '#888' }}>
-                          Sin Foto
-                        </div>
-                      )}
-                    </td>
-                    <td><strong style={{ color: 'var(--espe-green-dark)' }}>{bien.codigoBien}</strong></td>
-                    <td style={{ fontWeight: '500' }}>{bien.nombreBien}</td>
-                    <td style={{ color: '#5f6f68', fontSize: '0.9rem' }}>
-                      <span style={{ display: 'block' }}>S: {bien.serie || '-'}</span>
-                      <span style={{ display: 'block' }}>M: {bien.modelo || '-'}</span>
-                    </td>
-                    <td>
-                      <span className="pill" style={{ background: '#e1ebe5', color: 'var(--espe-green-dark)', padding: '6px 12px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: '500' }}>
-                        {bien.ubicacion || 'Sin Asignar'}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ==========================================
-// 3. COMPONENTE PRINCIPAL (ENRUTADOR LOGICO)
-// ==========================================
 export default function Dashboard() {
   const [bienes, setBienes] = useState([]);
   const [custodios, setCustodios] = useState([]);
@@ -210,13 +114,7 @@ export default function Dashboard() {
   const [cargando, setCargando] = useState(true);
   
   const navigate = useNavigate();
-  
-  // SOLUCIÓN AL BUG DE ROLES: Validar preferiblemente por Rol si está en localStorage.
   const emailSesion = localStorage.getItem('email') || '';
-  const rolSesion = localStorage.getItem('rol') || '';
-  
-  // La condición asume que eres Admin si tu rol dice 'Admin' o si tu correo específico es el que uses de administrador.
-  const esAdmin = rolSesion.toLowerCase().includes('admin') || emailSesion.toLowerCase() === 'jmgutierrez2@espue.edu.ec'; // Sustituye con tu correo real si no usas roles
 
   useEffect(() => {
     const cargarDatos = async () => {
@@ -270,16 +168,5 @@ export default function Dashboard() {
     cargarDatos();
   }, [navigate, emailSesion]);
 
-  if (esAdmin) {
-    return <VistaAdmin stats={stats} bienes={bienes} custodios={custodios} cargando={cargando} />;
-  } else {
-    const misBienesAsignados = custodios.length > 0
-      ? bienes.filter(b => {
-          const miPerfil = custodios.find(u => u.email?.toLowerCase() === emailSesion.toLowerCase());
-          return miPerfil && b.usuarioIdPropietario === miPerfil.id;
-        })
-      : [];
-
-    return <VistaDocente stats={stats} misBienes={misBienesAsignados} cargando={cargando} />;
-  }
+  return <VistaAdmin stats={stats} bienes={bienes} custodios={custodios} cargando={cargando} />;
 }

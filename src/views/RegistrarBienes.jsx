@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 
-const API_URL = 'http://localhost:5051/api';
+//const API_URL = 'http://localhost:5051/api';
+const API_URL = 'http://192.168.0.100:80/api';
 
 export default function RegistrarBienes() {
   const [bienes, setBienes] = useState([]);
@@ -10,8 +11,12 @@ export default function RegistrarBienes() {
   const [cargandoGuardar, setCargandoGuardar] = useState(false);
   const [mensaje, setMensaje] = useState({ texto: '', tipo: '' });
   
+  // Nuevos estados para controlar la edición
+  const [modoEdicion, setModoEdicion] = useState(false);
+  const [idBienEditar, setIdBienEditar] = useState(null);
+
   const [form, setForm] = useState({
-    codigoBien: '', nombreBien: '', serie: '', modelo: '', marcaRazaOtros: '', ubicacion: '', usuarioIdPropietario: ''
+    codigoBien: '', nombreBien: '', serie: '', modelo: '', marcaRazaOtros: '', ubicacion: '', usuarioIdPropietario: '', rutaImagen: ''
   });
   const [archivoImagen, setArchivoImagen] = useState(null);
 
@@ -42,18 +47,40 @@ export default function RegistrarBienes() {
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
   
-  const abrirModal = () => {
+  // Función para abrir modal en modo CREACIÓN
+  const abrirModalCrear = () => {
     setMensaje({ texto: '', tipo: '' });
-    setForm({ codigoBien: '', nombreBien: '', serie: '', modelo: '', marcaRazaOtros: '', ubicacion: '', usuarioIdPropietario: '' });
+    setForm({ codigoBien: '', nombreBien: '', serie: '', modelo: '', marcaRazaOtros: '', ubicacion: '', usuarioIdPropietario: '', rutaImagen: '' });
     setArchivoImagen(null);
+    setModoEdicion(false);
+    setIdBienEditar(null);
+    setMostrarModal(true);
+  };
+
+  // Función para abrir modal en modo EDICIÓN
+  const abrirModalEditar = (bien) => {
+    setMensaje({ texto: '', tipo: '' });
+    setForm({
+      codigoBien: bien.codigoBien || '',
+      nombreBien: bien.nombreBien || '',
+      serie: bien.serie || '',
+      modelo: bien.modelo || '',
+      marcaRazaOtros: bien.marcaRazaOtros || '',
+      ubicacion: bien.ubicacion || '',
+      usuarioIdPropietario: bien.usuarioIdPropietario || '',
+      rutaImagen: bien.rutaImagen || '' // Mantenemos la imagen original por si no sube una nueva
+    });
+    setArchivoImagen(null);
+    setModoEdicion(true);
+    setIdBienEditar(bien.id);
     setMostrarModal(true);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validación manual de imagen obligatoria
-    if (!archivoImagen) {
+    // Validación de imagen: Solo es obligatoria si estamos creando un bien nuevo
+    if (!modoEdicion && !archivoImagen) {
       setMensaje({ texto: 'La fotografía del bien es obligatoria.', tipo: 'error' });
       return;
     }
@@ -65,26 +92,39 @@ export default function RegistrarBienes() {
       const token = localStorage.getItem('token');
       const headersAuth = { 'Authorization': `Bearer ${token}` };
       
-      // 1. Subir imagen obligatoria
-      const formData = new FormData();
-      formData.append('archivo', archivoImagen);
-      const imgRes = await fetch(`${API_URL}/imagenes`, { method: 'POST', headers: headersAuth, body: formData });
-      
-      if (!imgRes.ok) throw new Error("Error al subir la fotografía.");
-      const imgData = await imgRes.json();
-      const rutaImagenId = imgData.id;
+      let rutaImagenId = form.rutaImagen; // Por defecto, usamos la imagen que ya tenía
 
-      // 2. Guardar el bien con el UUID de la imagen y el ID del custodio
-      const elementoPayload = { ...form, rutaImagen: rutaImagenId };
-      const res = await fetch(`${API_URL}/elementos`, {
-        method: 'POST',
+      // 1. Si el usuario seleccionó una imagen NUEVA, la subimos
+      if (archivoImagen) {
+        const formData = new FormData();
+        formData.append('archivo', archivoImagen);
+        const imgRes = await fetch(`${API_URL}/imagenes`, { method: 'POST', headers: headersAuth, body: formData });
+        
+        if (!imgRes.ok) throw new Error("Error al subir la fotografía.");
+        const imgData = await imgRes.json();
+        rutaImagenId = imgData.id; // Actualizamos con el nuevo UUID
+      }
+
+      // 2. Preparar el payload convirtiendo el ID del usuario a número
+      const elementoPayload = { 
+        ...form, 
+        usuarioIdPropietario: parseInt(form.usuarioIdPropietario, 10),
+        rutaImagen: rutaImagenId 
+      };
+
+      // 3. Determinar si hacemos un POST o un PUT
+      const url = modoEdicion ? `${API_URL}/elementos/${idBienEditar}` : `${API_URL}/elementos`;
+      const method = modoEdicion ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method: method,
         headers: { ...headersAuth, 'Content-Type': 'application/json' },
         body: JSON.stringify(elementoPayload)
       });
 
-      if (!res.ok) throw new Error("Error al registrar el bien en la base de datos.");
+      if (!res.ok) throw new Error(modoEdicion ? "Error al actualizar el bien." : "Error al registrar el bien.");
 
-      setMensaje({ texto: '¡Bien registrado y asignado exitosamente!', tipo: 'success' });
+      setMensaje({ texto: modoEdicion ? '¡Bien actualizado exitosamente!' : '¡Bien registrado y asignado!', tipo: 'success' });
       cargarDatos();
       setTimeout(() => setMostrarModal(false), 1500);
 
@@ -113,7 +153,7 @@ export default function RegistrarBienes() {
             <span style={{ fontSize: '0.9rem', color: '#5f6f68' }}>Total de bienes en la red ({bienes.length})</span>
           </div>
           <button 
-            onClick={abrirModal} 
+            onClick={abrirModalCrear} 
             style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 24px', background: 'var(--espe-green)', color: 'white', borderRadius: '8px', fontWeight: 'bold', border: 'none', cursor: 'pointer', transition: 'all 0.2s ease', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
             onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
             onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
@@ -142,6 +182,7 @@ export default function RegistrarBienes() {
                   <th>Nombre del bien</th>
                   <th>Serie</th>
                   <th>Ubicación</th>
+                  <th style={{ textAlign: 'center' }}>Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -158,6 +199,17 @@ export default function RegistrarBienes() {
                     <td>{bien.nombreBien}</td>
                     <td style={{ color: '#5f6f68' }}>{bien.serie || '-'}</td>
                     <td><span className="pill" style={{ background: '#e1ebe5', color: 'var(--espe-green-dark)', padding: '6px 12px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: '500' }}>{bien.ubicacion || 'Sin Asignar'}</span></td>
+                    <td style={{ textAlign: 'center' }}>
+                      <button 
+                        onClick={() => abrirModalEditar(bien)}
+                        style={{ padding: '8px 12px', background: '#f8fbf9', border: '1px solid #cdd6d2', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s ease', fontSize: '1.1rem' }}
+                        onMouseOver={(e) => e.currentTarget.style.background = '#e1ebe5'}
+                        onMouseOut={(e) => e.currentTarget.style.background = '#f8fbf9'}
+                        title="Editar Bien"
+                      >
+                        ✏️
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -172,8 +224,12 @@ export default function RegistrarBienes() {
             <button onClick={() => setMostrarModal(false)} style={{ position: 'absolute', top: '20px', right: '20px', background: '#f1f3f4', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', cursor: 'pointer', color: '#5f6f68', transition: 'background 0.2s' }}>&times;</button>
             
             <div style={{ borderBottom: '2px solid #f1f3f4', paddingBottom: '15px', marginBottom: '25px' }}>
-              <h3 style={{ margin: 0, color: 'var(--espe-green-dark)', fontSize: '1.5rem' }}>Registrar Nuevo Bien</h3>
-              <p style={{ margin: '5px 0 0 0', color: '#5f6f68', fontSize: '0.9rem' }}>Complete la ficha técnica y asigne un custodio.</p>
+              <h3 style={{ margin: 0, color: 'var(--espe-green-dark)', fontSize: '1.5rem' }}>
+                {modoEdicion ? 'Editar Bien Patrimonial' : 'Registrar Nuevo Bien'}
+              </h3>
+              <p style={{ margin: '5px 0 0 0', color: '#5f6f68', fontSize: '0.9rem' }}>
+                {modoEdicion ? 'Modifique los datos técnicos del equipo.' : 'Complete la ficha técnica y asigne un custodio.'}
+              </p>
             </div>
             
             {mensaje.texto && (
@@ -192,7 +248,6 @@ export default function RegistrarBienes() {
                 <input type="text" name="nombreBien" value={form.nombreBien} onChange={handleChange} required style={{ padding: '10px 12px', border: '1px solid #cdd6d2', borderRadius: '8px', outline: 'none' }} />
               </div>
               
-              {/* Campo Nuevo: Custodio */}
               <div style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <label style={{ fontSize: '0.85rem', fontWeight: '600', color: '#333' }}>Custodio Asignado *</label>
                 <select name="usuarioIdPropietario" value={form.usuarioIdPropietario} onChange={handleChange} required style={{ padding: '10px 12px', border: '1px solid #cdd6d2', borderRadius: '8px', outline: 'none', background: '#fff' }}>
@@ -221,14 +276,16 @@ export default function RegistrarBienes() {
               </div>
               
               <div style={{ gridColumn: '1 / -1', background: '#f8fbf9', padding: '15px', borderRadius: '8px', border: '1px dashed #cdd6d2' }}>
-                <label style={{ display: 'block', fontWeight: '600', fontSize: '0.85rem', color: '#333', marginBottom: '8px' }}>📸 Fotografía del Equipo * (Obligatoria)</label>
-                <input type="file" accept="image/*" onChange={(e) => setArchivoImagen(e.target.files[0])} required style={{ width: '100%', fontSize: '0.9rem', color: '#5f6f68' }} />
+                <label style={{ display: 'block', fontWeight: '600', fontSize: '0.85rem', color: '#333', marginBottom: '8px' }}>
+                  📸 Fotografía del Equipo {modoEdicion ? '(Opcional: Suba una nueva para reemplazar)' : '* (Obligatoria)'}
+                </label>
+                <input type="file" accept="image/*" onChange={(e) => setArchivoImagen(e.target.files[0])} style={{ width: '100%', fontSize: '0.9rem', color: '#5f6f68' }} />
               </div>
               
               <div style={{ gridColumn: '1 / -1', marginTop: '10px', display: 'flex', gap: '15px', justifyContent: 'flex-end', borderTop: '2px solid #f1f3f4', paddingTop: '20px' }}>
                 <button type="button" onClick={() => setMostrarModal(false)} style={{ padding: '12px 24px', background: '#fff', border: '1px solid #cdd6d2', borderRadius: '8px', cursor: 'pointer', color: '#333', fontWeight: '600' }}>Cancelar</button>
                 <button type="submit" disabled={cargandoGuardar} style={{ padding: '12px 24px', background: 'var(--espe-green)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
-                  {cargandoGuardar ? 'Procesando...' : 'Guardar Ficha Técnica'}
+                  {cargandoGuardar ? 'Procesando...' : (modoEdicion ? 'Guardar Cambios' : 'Guardar Ficha Técnica')}
                 </button>
               </div>
             </form>
